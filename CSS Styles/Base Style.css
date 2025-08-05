@@ -34,6 +34,12 @@ header {
 	height: 100px;
 }
 
+header img {
+	height: 100px;
+	position: absolute;
+	right: 0px;
+}
+
 .content {
 	padding-left: 10px;
 	padding-right: 10px;
