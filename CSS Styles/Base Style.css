@@ -1,50 +1,98 @@
-a {
-	color: black;
+/* Default to remove ugly white border around all pages */
+* {
+	margin: 0px;
 }
 
-p {
-	padding-right: 150px;
+/* Default set sidebar list style and distance from edge */
+ul.list {
+    font-weight: bold;
+    padding-top: 5px;
+	list-style-type: none;
+	padding-left: 10px;
 }
 
-ul {
-	padding-top: 0;
-	padding-bottom: 0;
+ul.sublist {
+    font-weight: normal;
+    padding: 0;
+	list-style-type: disc;
+	padding-left: 33px;
 }
 
-body {
-	margin: 0;
+/* Default set sidebar and body to organize content */
+div.sidebar {
+    height: 100%;
+    outline: 5px;
+    outline-style: solid;
+	position: fixed;
+	width: 290px;
+	max-height: 100%;
+	overflow-y: auto;
+    background-color: rgb(200, 255, 255);
 }
 
-h1 {
-	margin: 0;
-	padding: 0;
+div.content {
+    height: 100%;
+	margin: 0 0 0 295px;
+	position: relative;
+	overflow-y: auto;
+    background-color: rgb(200, 255, 255);
+}
+
+div.header {
+    outline: 5px;
+    outline-style: solid;
+    padding-bottom: 10px;
+    background-color: dodgerblue;
+}
+
+div.body {
+    padding: 10px 0 0 0;
+}
+
+div::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+}
+
+/* Set border around logo to seperate it from sidebar list */
+img.logo {
+    outline: 5px;
+    outline-style: solid;
+}
+
+html, body {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Set remaining uncategorized style settings */
+h1, h2 {
+    padding: 5px 0 0 10px;
 	text-decoration: underline;
 }
 
-h2, h3 {
-	margin: 0;
-	padding: 0;
+h3 {
+    padding: 0 0 0 10px;
 }
 
-header {
-	margin: 0;
-	padding: 0;
-	background-color: #00AFFF;
-	padding-left: 10px;
-	height: 100px;
+h4 {
+    padding: 0 0 0 20px;
 }
 
-header img {
-	height: 100px;
-	position: absolute;
-	right: 0px;
+p {
+	padding: 10px 0 10px 20px;
 }
 
-.content {
-	padding-left: 10px;
-	padding-right: 10px;
+a {
+    color: black;
+    text-decoration: none;
 }
 
-ul#menu li {
-	display: inline;
+a.catalog {
+    padding: 10px 0 10px 0;
+    margin-left: 10px;
+    font-weight: bold;
+    padding-left: 10px;
+    display: inline-block;
 }
