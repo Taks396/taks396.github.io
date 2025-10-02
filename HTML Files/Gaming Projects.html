@@ -1,34 +1,81 @@
 <!DOCTYPE html>
-<html lang="en-US">
-  <head>
-		<title>Gaming Projects</title>
-		<link rel="stylesheet" href="../CSS%20Styles/Base%20Style.css">
-	</head>
+<html>
+    <head>
+        <title>Gaming Projects</title>
+        <link rel="stylesheet" href="../CSS Styles/Base Style.css">
+    </head>
 
-  <header>
-    <h1>Gaming Projects</h1>
-    <p title="My name is Taks! Look it even says so on my logo!">
-    By <a style="text-decoration: None;" href="./About%20Me.html">Taks</a>
-    </p>
-  </header>
+    <body>
+        <div class="sidebar">
+            <img class="logo" src="../Site Images/Logo.png", width="290px">
+            <ul class="list">
+                <li><a href="./Introduction.html">1. Introduction</a></li>
+                <li><a href="./Coding Projects.html">2. Coding Projects</a></li>
+                <li><a href="./Cooking Recipes.html">3. Cooking Recipes</a></li>
+                <li>
+                    <a href="">4. Gaming Projects</a>
+                    <ul class="sublist">
+                        <li><a href="#description">Description</a></li>
+                        <li><a href="#7dtd">7 Days to Die</a></li>
+                        <li><a href="#ark">Ark Survival Evolved</a></li>
+                        <li><a href="#gtnh">GregTech: New Horizons</a></li>
+                        <li><a href="#minecraft">Minecraft: Java Edition</a></li>
+                    </ul>
+                </li>
+                <li><a href="./Default Structure.html">5. Temp Default Category Structure</a></li>
+            </ul>
+        </div>
 
-  <body>
-    <div class="content">
-      <a href="./Homepage.html">Return to Home</a>
+        <div class="content">
+            <div class="header">
+                <h1>Gaming Projects</h1>
+                <p title="Taks comes from my gamer tag: Taks396. But that's all you're getting!">
+                    By <a style="text-decoration: None;" href="./About Me.html">Taks</a>
+                </p>
+            </div>
 
-      <h2>Description</h2>
-      <p>This page serves to show off the different things I have done in the different videogames I play. It won't contain anything that can't be explained simply, <a style="text-decoration: none;" href="Call of Duty WW2.html">like Call of Duty,</a> where the objective is just get in and shooty shooty, but instead will contain games that require some explanation, like how to build something for example.</p>
+            <div class="body">
+                <h2 id="#description">Description</h2>
+                <p>This page serves to show off the different things I have done in the different videogames I play. It won't contain anything that can't be explained simply, <a style="text-decoration: none;" href="Call of Duty WW2.html">like Call of Duty,</a> where the objective is just get in and shooty shooty, but instead will contain games that require some explanation, like how I build something for example.</p>
+                <p>For all of these, I will include relavent screenshots, possibly blueprints designed in Gimp, so that you can replicate what I am doing, or use it as inspiration to do something yourself. Think of this as the nerdiest <a href="./Cooking Recipes.html">cooking recipe catalog ever.</a></p>
 
-      <hr>
+                <hr>
 
-      <h2>Covered Games</h2>
-      <ul id="menu">
-        <li><a href="#ark">Ark Survival Evolved - Base Game</a></li>
-        <li><a href="#greg">GregTech: New Horizons</a></li>
-        <li><a href="#minecraft">Minecraft</a></li>
-        <li><a href="#terraria">Terraria</a></li>
-      </ul>
-    </div>
-  </body>
+                <h2 id="7dtd">7 Days to Die</h2>
+                <p>This section is dedicated to the structures I have built in the survival crafting zombie apocolypse game called 7 Days to Die. Each structure will include volumetric dimensions of the build and instructions on how to build it. The instructions will assume you are building in creative mode using steel blocks. If you are building in survival mode, this will be the final form of the structure and it is your job to get there.</p>
+                <a href=""><h3>Primary Base</h3></a>
+                <p><b>Tested Releases: </b>Alpha 19 to Full 1.4</p>
+                <h4>Preface: </h4>
+                <p>This base has been tested in every release specified but is significantly less viable following the release of Alpha 21. Due to the restriction of concrete upgrades behind Forge Ahead Magazine 30/75 and what feels like a block damage buff to zombies, this base will struggle early game but will function fine past blood moon 2. This also assumes that the player hasn't gotten insanely unlucky while looting for these magazines.</p>
 
+                <h4>Minimum Dimensions (lwh):</h4>
+                <ul style="list-style-type: none;">
+                    <li>Horde Base: 29x29x11 blocks</li>
+                    <li>Factory/Storage: 15x15x5 blocks</li>
+                    <li>Ladder Tube: 3x3xd blocks where d is the verticle distance between the above</li>
+                </ul><br>
+
+                <h4>How to Build:</h4>
+                <ul style="list-style-type: none;">
+                    <li>
+                        <b>Horde Base:</b>
+                        <ol>
+                            <li>Replace the top layer of dirt with blocks of length and width above leaving a one block hole in the center for a ladder.</li>
+                            <li>Starting from one corner, create an 8x8 grid of blocks seperated by 3 blocks. These should be blocks with a corner cut off oriented such that the corner is faced downwards and towards the ladder port, like this.</li>
+                            <li>Using normal blocks, extend these pillars up 6 blocks to a height of 7 total.</li>
+                            <li>Orient bar blocks to be flat with the top of these pillars and fill in the space. Leave gaps in the center of each 2x2 set of pillars, like this.</li>
+                            <li>In the gaps, place upside down facing <span title="Use iron ones because they open faster than steel and don't need to be insanely strong.">IRON</span> hatches (you'll need 49 total). These will serve as throwable ports, mild cover from cop spit, and access ports for wiring.</li>
+                            <li>Using the same corner cut blocks as in step 2, add an extra block to each of the pillars on the inner 6x6, then extend them up 2 normal blocks to a height of 3 (10 total pillar height). In both cases, these cut off corner blocks will allow the player to reach, and thus upgrade, the block beneath them which would otherwise be inaccessable.</li>
+                            <li>Add a bar block ceiling in the same way as you did the floor. Only leave a gap in the center of this bar ceiling for a ladder capped with a steel hatch for roof access.</li>
+                            <li>For the walls, create a 2 high wall of normal facing bars, leaving a 3 wide gap in the center of the walls.</li>
+                        </ol>
+                    </li>
+                    <li><b>Factory/Storage</b></li>
+                    <li><b>Ladder Tube:</b></li>
+                </ul>
+
+                <hr>
+            </div>
+        </div>
+    </body>
 </html>
