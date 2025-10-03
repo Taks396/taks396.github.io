@@ -18,6 +18,11 @@ ul.sublist {
 	padding-left: 33px;
 }
 
+ul.terms {
+	list-style-type: none;
+	padding: 10px 0 0 20px;
+}
+
 /* Default set sidebar and body to organize content */
 div.sidebar {
     height: 100%;
