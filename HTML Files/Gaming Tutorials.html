@@ -16,27 +16,22 @@
                     <a href="">4. Gaming Tutorials</a>
                     <ul class="sublist">
                         <li><a href="#description"><b>&bull;</b> Description</a></li>
-
-
-
-
                         <li>
                             <a href="#7dtd" class="dropbtn" onclick="subListSections('7dtdcon')"><b>&bull;</b> 7 Days to Die</a>
-
+                            
                             <ul class="sectioncontent" id="7dtdcon">
                                 <li><a href="#prim"><b>&#8227;</b> The Blender</a></li>
                                 <li><b>&#8227;</b> Other Link</li>
                             </ul>
                         </li>
+                        <li>
+                            <a href="#ark" class="dropbtn" onclick="subListSections('arkcon')"><b>&bull;</b> Ark Survival Evolved</a>
 
-                        https://stackoverflow.com/questions/40889100/how-to-hide-the-other-dropdown-when-others-is-selected
-
-                        
-
-
-
-
-                        <li><a href="#ark"><b>&bull;</b> Ark Survival Evolved</a></li>
+                            <ul class="sectioncontent" id="arkcon">
+                                <li><a href="#island"><b>&#8227;</b> The Island</a></li>
+                                <li><a href="#scorched"><b>&#8227;</b> Scorched Earth</a></li>
+                            </ul>
+                        </li>
                         <li><a href="#gtnh"><b>&bull;</b> GregTech: New Horizons</a></li>
                         <li><a href="#minecraft"><b>&bull;</b> Minecraft: Java Edition</a></li>
                     </ul>
@@ -56,8 +51,8 @@
                 }
 
                 function subListSections(id) {
-                    id.classList.toggle("show");
-                    hideSections(id.id);
+                    document.getElementById(id).classList.toggle("show");
+                    hideSections(id);
                 }
 
                 window.onclick = function(event) {
