@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>page1</title>
+        <title>Coding Projects</title>
         <link rel="stylesheet" href="../CSS Styles/Base Style.css">
     </head>
 
@@ -13,16 +13,27 @@
                 <li>
                     <a href="">2. Coding Proejcts</a>
                     <ul class="sublist">
-                        <li>Assembly</li>
-                        <li>C/C++</li>
-                        <li>Java</li>
-                        <li>Python</li>
+                        <li><a href="#description"><b>&bull;</b> Description</a></li>
+                        <li><a href="#howtocode"><b>&bull;</b> How to Code</a></li>
+                        <li><a href="#assem"><b>&bull;</b> Assembly</a></li>
+                        <li><a href="#ccpp"><b>&bull;</b> C/C++</a></li>
+                        <li>
+                            <a href="#html" class="dropbtn" onclick="subListSections('htmlcon')"><b>&bull;</b> HTML</a>
+
+                            <ul class="sectioncontent" id="htmlcon">
+                                <li><a href="#thissite"><b>&#8227;</b> This Website</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#java"><b>&bull;</b> Java</a></li>
+                        <li><a href="#python"><b>&bull;</b> Python</a></li>
                     </ul>
                 </li>
                 <li><a href="./Cooking Recipes.html">3. Cooking Recipes</a></li>
-                <li><a href="./Gaming Projects.html">4. Gaming Projects</a></li>
+                <li><a href="./Gaming Tutorials.html">4. Gaming Tutorials</a></li>
                 <li><a href="./Default Structure.html">5. Temp Default Category Structure</a></li>
             </ul>
+
+            <script src="../Scripts/dropdown.js"></script>
         </div>
 
         <div class="content">
@@ -34,8 +45,39 @@
             </div>
 
             <div class="body">
-                <p>Focus on cooking recipes first please...</p>
-                <p>Those are at least done and the page can be finished</p>
+                <h2 id="description">Description</h2>
+                <p>This section is dedicated to the various programming projects I have created over my life using different languages and techniques. The idea is to document how I learned to program over time so that anyone at all could refer to this and try it out themselves. I will provide a section for how to learn programming in general as there are methods that I think are applicable to all languages. For all of the language specific projects, I will provide code snippets that are recreations, but not exact copies, of what I have done for the user to follow along.</p>
+
+                <hr>
+
+                <h2 id="howtocode">How to Code</h2>
+                <p>This sections is gonna provide the basis for how I learned to program from the beginning. Be warned though, the best thing I found that works is to know that a problem exists, look up how other people have done it, and then play around with their methods to develope my own style based on what I like.</p>
+
+                <hr>
+
+                <h2 id="assem">Assembly</h2>
+
+                <hr>
+
+                <h2 id="ccpp">C/C++</h2>
+
+                <hr>
+
+                <h2 id="html">HTML</h2>
+                <h3>Background</h3>
+                <p>I only started learning HTML once I started working after college because one day I was bored at my job but also wanted to <span title="I was not being productive that day, but I had nothing meaningful to do soooo...">feel productive.</span> So, I decided to learn a programming language I have never considered before: HTML. The first project was just to program this website and honestly, it was a lot easier to do than I thought, though admittedly I haven't done anything advanced with it.</p>
+
+                <h3 id="thissite">This Website</h3>
+                <p>During the training period of my job, I had to follow examples found on a site called <a href="https://pysdr.org/content/intro.html">PySDR</a> to learn the basics of Digital Signal Processing and apply that to real signal data as best I could. I mention this because I liked the basic look of that site, hence why this blog looks pretty similar. I never copied the HTML code directly to be clear, so everything you see here is all my own shitty style, but I am proud of it anyway.</p>
+
+                <h4>Headers</h4>
+                <p>If you can't tell, I like labeling everything into catagories for organization, which is why I put headers and bolded text in front of anything that feels different than something else. Therefore, figuring out how to make headers was the first thing I learned in HTML. The basic code for any header is as follows:</p>
+
+                <pre><code>
+                    &lt;h1&gt;Some Text&lt;/h1&gt;
+                </code></pre>
+
+                <p>The headers range from 1-6</p>
             </div>
         </div>
     </body>

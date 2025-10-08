@@ -9,13 +9,40 @@ ul.list {
     padding-top: 5px;
 	list-style-type: none;
 	padding-left: 10px;
+/* Default to remove ugly white border around all pages */
+* {
+	margin: 0px;
+}
+
+/* Default set sidebar list style and distance from edge */
+ul.list {
+    font-weight: bold;
+    padding-top: 5px;
+	list-style-type: none;
+	padding-left: 10px;
 }
 
 ul.sublist {
     font-weight: normal;
     padding: 0;
-	list-style-type: disc;
-	padding-left: 33px;
+	list-style-type: none;
+	padding-left: 17px;
+}
+
+.sectioncontent {
+    display: none;
+    list-style-type: none;
+    padding: 0 0 0 10px;
+}
+
+.show {
+    display: list-item;
+    list-style-type: none;
+}
+
+ul.terms {
+	list-style-type: none;
+	padding: 10px 0 0 20px;
 }
 
 /* Default set sidebar and body to organize content */
@@ -74,6 +101,8 @@ h1, h2 {
 
 h3 {
     padding: 0 0 0 10px;
+h3 {
+    padding: 0 0 0 10px;
 }
 
 h4 {
@@ -95,4 +124,21 @@ a.catalog {
     font-weight: bold;
     padding-left: 10px;
     display: inline-block;
+}
+
+pre {
+    background-color: cyan;
+    margin: 0 0 0 20px;
+    padding: 15px 15px 17px 15px;
+    border: 1.5px solid darkcyan;
+    border-radius: 5px;
+    white-space-collapse: collapse;
+    width: fit-content;
+}
+
+code {
+    font-family: Consolas, "Courier New", monospace;
+    font-weight: 900;
+    font-size: 14px;
+    position: relative;
 }

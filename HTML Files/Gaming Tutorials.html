@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Gaming Projects</title>
+        <title>Gaming Tutorials</title>
         <link rel="stylesheet" href="../CSS Styles/Base Style.css">
     </head>
 
@@ -13,46 +13,63 @@
                 <li><a href="./Coding Projects.html">2. Coding Projects</a></li>
                 <li><a href="./Cooking Recipes.html">3. Cooking Recipes</a></li>
                 <li>
-                    <a href="">4. Gaming Projects</a>
+                    <a href="">4. Gaming Tutorials</a>
                     <ul class="sublist">
-                        <li><a href="#description">Description</a></li>
-                        <li><a href="#7dtd">7 Days to Die</a></li>
-                        <li><a href="#ark">Ark Survival Evolved</a></li>
-                        <li><a href="#gtnh">GregTech: New Horizons</a></li>
-                        <li><a href="#minecraft">Minecraft: Java Edition</a></li>
+                        <li><a href="#description"><b>&bull;</b> Description</a></li>
+                        <li>
+                            <a href="#7dtd" class="dropbtn" onclick="subListSections('7dtdcon')"><b>&bull;</b> 7 Days to Die</a>
+                            
+                            <ul class="sectioncontent" id="7dtdcon">
+                                <li><a href="#prim"><b>&#8227;</b> The Blender</a></li>
+                                <li><b>&#8227;</b> Other Link</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#ark" class="dropbtn" onclick="subListSections('arkcon')"><b>&bull;</b> Ark Survival Evolved</a>
+
+                            <ul class="sectioncontent" id="arkcon">
+                                <li><a href="#island"><b>&#8227;</b> The Island</a></li>
+                                <li><a href="#scorched"><b>&#8227;</b> Scorched Earth</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#gtnh"><b>&bull;</b> GregTech: New Horizons</a></li>
+                        <li><a href="#minecraft"><b>&bull;</b> Minecraft: Java Edition</a></li>
                     </ul>
                 </li>
                 <li><a href="./Default Structure.html">5. Temp Default Category Structure</a></li>
             </ul>
+
+            <script src="../Scripts/dropdown.js"></script>
         </div>
 
         <div class="content">
             <div class="header">
-                <h1>Gaming Projects</h1>
+                <h1>Gaming Tutorials</h1>
                 <p title="Taks comes from my gamer tag: Taks396. But that's all you're getting!">
                     By <a style="text-decoration: None;" href="./About Me.html">Taks</a>
                 </p>
             </div>
 
             <div class="body">
-                <h2 id="#description">Description</h2>
-                <p>This page serves to show off the different things I have done in the different videogames I play. It won't contain anything that can't be explained simply, <a style="text-decoration: none;" href="Call of Duty WW2.html">like Call of Duty,</a> where the objective is just get in and shooty shooty, but instead will contain games that require some explanation, like how I build something for example.</p>
+                <h2 id="description">Description</h2>
+                <p>This page serves to show off the different things I have done in the different videogames I play. It won't contain anything that can't be explained simply, <a style="text-decoration: none;" href="./Call of Duty.html">like Call of Duty,</a> where the objective is just get in and shooty shooty, but instead will contain games that require some explanation, like how I build something for example.</p>
                 <p>For all of these, I will include relavent screenshots, possibly blueprints designed in Gimp, so that you can replicate what I am doing, or use it as inspiration to do something yourself. Think of this as the nerdiest <a href="./Cooking Recipes.html">cooking recipe catalog ever.</a></p>
 
                 <hr>
 
                 <h2 id="7dtd">7 Days to Die</h2>
                 <p>This section is dedicated to the structures I have built in the survival crafting zombie apocolypse game called 7 Days to Die. Each structure will include volumetric dimensions of the build and instructions on how to build it. The instructions will assume you are building in creative mode using steel blocks. If you are building in survival mode, this will be the final form of the structure and it is your job to get there.</p>
-                <a href=""><h3>Primary Base</h3></a>
+                <h3 id="prim">The Blender</h3>
                 <p><b>Tested Releases: </b>Alpha 19 to Full 1.4</p>
                 <h4>Preface: </h4>
                 <p>This base has been tested in every release specified but is significantly less viable following the release of Alpha 21. Due to the restriction of concrete upgrades behind Forge Ahead Magazine 30/75 and what feels like a block damage buff to zombies, this base will struggle early game but will function fine past blood moon 2. This also assumes that the player hasn't gotten insanely unlucky while looting for these magazines.</p>
 
                 <h4>Minimum Dimensions (lwh):</h4>
                 <ul style="list-style-type: none;">
-                    <li>Horde Base: 29x29x11 blocks</li>
-                    <li>Factory/Storage: 15x15x5 blocks</li>
-                    <li>Ladder Tube: 3x3xd blocks where d is the verticle distance between the above</li>
+                    <li><b>Horde Base: </b>29x29x11 blocks</li>
+                    <li><b>Ladder Tube: </b>3x3xH blocks where H is the verticle distance between the horde base and the factory</li>
+                    <li><b>Factory/Storage: </b>15x15x5 blocks</li>
+                    
                 </ul><br>
 
                 <h4>How to Build:</h4>
@@ -67,14 +84,31 @@
                             <li>In the gaps, place upside down facing <span title="Use iron ones because they open faster than steel and don't need to be insanely strong.">IRON</span> hatches (you'll need 49 total). These will serve as throwable ports, mild cover from cop spit, and access ports for wiring.</li>
                             <li>Using the same corner cut blocks as in step 2, add an extra block to each of the pillars on the inner 6x6, then extend them up 2 normal blocks to a height of 3 (10 total pillar height). In both cases, these cut off corner blocks will allow the player to reach, and thus upgrade, the block beneath them which would otherwise be inaccessable.</li>
                             <li>Add a bar block ceiling in the same way as you did the floor. Only leave a gap in the center of this bar ceiling for a ladder capped with a steel hatch for roof access.</li>
-                            <li>For the walls, create a 2 high wall of normal facing bars, leaving a 3 wide gap in the center of the walls.</li>
+                            <li>For the walls, create a 2 high wall of normal facing bars, leaving a 1 wide gap in the center of the walls. Do not place bars on the corners or on the third block up as you need a different block type for these.</li>
+                            <li>Select the corner bars block and fill in the corners only two high like the walls. Using this same block fill in the third block above the normal bars such that one side of the L bars is part of the roof, like this.</li>
+                            <li></li>
                         </ol>
                     </li>
-                    <li><b>Factory/Storage</b></li>
                     <li><b>Ladder Tube:</b></li>
+                    <li><b>Factory/Storage</b></li>
                 </ul>
 
                 <hr>
+
+                <h2 id="ark">Ark: Survival Evolved</h2>
+                <p>This section is dedicated to how I <span title="I've never actually done this before...">intend to beat</span> the different maps in Ark: Survival Evolved. I don't usually play on any of the other maps besides The Island and almost always solo, but if I beat the base game and get all achievments associated with it, then I will play the others and update this blog.</p>
+
+                <hr>
+
+                <h2 id="gtnh">GregTech: New Horizons</h2>
+
+                <hr>
+
+                <h2 id="minecraft">Minecraft: Java Edition</h2>
+
+                <hr>
+
+                <h2 id="terraria">Terraria</h2>
             </div>
         </div>
     </body>
