@@ -9,6 +9,17 @@ ul.list {
     padding-top: 5px;
 	list-style-type: none;
 	padding-left: 10px;
+/* Default to remove ugly white border around all pages */
+* {
+	margin: 0px;
+}
+
+/* Default set sidebar list style and distance from edge */
+ul.list {
+    font-weight: bold;
+    padding-top: 5px;
+	list-style-type: none;
+	padding-left: 10px;
 }
 
 ul.sublist {
@@ -88,6 +99,8 @@ h1, h2 {
 	text-decoration: underline;
 }
 
+h3 {
+    padding: 0 0 0 10px;
 h3 {
     padding: 0 0 0 10px;
 }
