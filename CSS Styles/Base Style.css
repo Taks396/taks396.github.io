@@ -132,3 +132,7 @@ code {
     font-size: 14px;
     position: relative;
 }
+
+summary {
+    list-style: none;
+}
