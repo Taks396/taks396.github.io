@@ -1,8 +1,11 @@
 /* Default to remove ugly white border around all elements */
 * {
-    margin: 0px;
+    margin: 0;
+    border: 0;
+    padding: 0;
 }
 
+/* Page class and subclasses handle grid structure */
 .page {
     display: grid;
     grid-template-areas: 
@@ -23,15 +26,40 @@
 
 .page .header {
     grid-area: title;
-    background-color: dodgerblue;
+    background-color: #008cff;
 }
 
-.page .menu {
+.page .sidebar {
     grid-area: sections;
-    background-color: rgb(200,255,255);
+    background-color: #80ffdb;
+    font-weight: bold;
 }
 
 .page .content {
     grid-area: main;
-    background-color: rgb(200,255,255);
+    background-color: #80ffdb;
+}
+
+/* Class Specific Stylization */
+ol.sidebar {
+    padding: 5px 0 0 21px;
+}
+
+/* Page Stylization */
+h1, h2 {
+    padding: 5px 0 5px 10px;
+	text-decoration: underline;
+}
+
+h3 {
+    padding: 0 0 0 10px;
+}
+
+p {
+	padding: 5px 0 5px 20px;
+}
+
+a {
+    color: black;
+    text-decoration: none;
 }
