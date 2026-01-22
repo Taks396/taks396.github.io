@@ -60,6 +60,11 @@ h3 {
     padding: 0 0 0 10px;
 }
 
+hr {
+    border-top: 1px solid black;
+    margin: 5px 0 0 0;
+}
+
 p {
 	padding: 5px 0 5px 20px;
 }
