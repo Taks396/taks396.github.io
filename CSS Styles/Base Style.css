@@ -1,0 +1,37 @@
+/* Default to remove ugly white border around all elements */
+* {
+    margin: 0px;
+}
+
+.page {
+    display: grid;
+    grid-template-areas: 
+        "logo title"
+        "logo main"
+        "sections main";
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto 1fr;
+    background-color: black;
+    gap: 5px;
+    height: 100vh;
+}
+
+.page .logo {
+    grid-area: logo;
+    aspect-ratio: 1 / 1;
+}
+
+.page .header {
+    grid-area: title;
+    background-color: dodgerblue;
+}
+
+.page .menu {
+    grid-area: sections;
+    background-color: rgb(200,255,255);
+}
+
+.page .content {
+    grid-area: main;
+    background-color: rgb(200,255,255);
+}
