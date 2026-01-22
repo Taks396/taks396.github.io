@@ -50,14 +50,20 @@ ol.sidebar {
     padding: 5px 0 0 21px;
 }
 
+ul.terms {
+    padding: 0 0 5px 30px;
+    list-style-type: none;
+}
+
 /* Page Stylization */
 h1, h2 {
     padding: 5px 0 5px 10px;
 	text-decoration: underline;
 }
 
-h3 {
-    padding: 0 0 0 10px;
+h4 {
+    padding: 0 0 5px 20px;
+	text-decoration: underline;
 }
 
 hr {
