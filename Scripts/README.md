@@ -1,0 +1,1 @@
+This directory contains various javascript scripts that some features of the site need to function. A general description of each is provided below:
