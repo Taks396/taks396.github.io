@@ -40,6 +40,11 @@
     background-color: #80ffdb;
 }
 
+.curpage {
+    list-style-type: none;
+    font-weight: normal;
+}
+
 /* Class Specific Stylization */
 ol.sidebar {
     padding: 5px 0 0 21px;
@@ -53,6 +58,11 @@ h1, h2 {
 
 h3 {
     padding: 0 0 0 10px;
+}
+
+hr {
+    border-top: 1px solid black;
+    margin: 5px 0 0 0;
 }
 
 p {
