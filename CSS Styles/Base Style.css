@@ -1,0 +1,75 @@
+/* Default to remove ugly white border around all elements */
+* {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+/* Page class and subclasses handle grid structure */
+.page {
+    display: grid;
+    grid-template-areas: 
+        "logo title"
+        "logo main"
+        "sections main";
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto 1fr;
+    background-color: black;
+    gap: 5px;
+    height: 100vh;
+}
+
+.page .logo {
+    grid-area: logo;
+    aspect-ratio: 1 / 1;
+}
+
+.page .header {
+    grid-area: title;
+    background-color: #008cff;
+}
+
+.page .sidebar {
+    grid-area: sections;
+    background-color: #80ffdb;
+    font-weight: bold;
+}
+
+.page .content {
+    grid-area: main;
+    background-color: #80ffdb;
+}
+
+.curpage {
+    list-style-type: none;
+    font-weight: normal;
+}
+
+/* Class Specific Stylization */
+ol.sidebar {
+    padding: 5px 0 0 21px;
+}
+
+/* Page Stylization */
+h1, h2 {
+    padding: 5px 0 5px 10px;
+	text-decoration: underline;
+}
+
+h3 {
+    padding: 0 0 0 10px;
+}
+
+hr {
+    border-top: 1px solid black;
+    margin: 5px 0 0 0;
+}
+
+p {
+	padding: 5px 0 5px 20px;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+}
