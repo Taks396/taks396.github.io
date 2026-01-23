@@ -38,11 +38,18 @@
 .page .content {
     grid-area: main;
     background-color: #80ffdb;
+    scrollbar-width: none;
+    overflow-y: scroll;
 }
 
 .curpage {
     list-style-type: none;
     font-weight: normal;
+}
+
+html::-webkit-scrollbar {
+	width: 0;
+	height: 0;
 }
 
 /* Class Specific Stylization */
@@ -81,7 +88,7 @@ hr {
 }
 
 p {
-	padding: 5px 0 5px 20px;
+	padding: 5px 20px 5px 20px;
 }
 
 a {
