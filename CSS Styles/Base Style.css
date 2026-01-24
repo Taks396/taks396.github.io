@@ -95,3 +95,7 @@ a {
     color: black;
     text-decoration: none;
 }
+
+summary {
+    list-style: none;
+}
