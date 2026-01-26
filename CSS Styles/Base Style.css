@@ -9,9 +9,9 @@
 .page {
     display: grid;
     grid-template-areas: 
-        "logo title"
-        "logo main"
-        "sections main";
+        "logo title dark"
+        "logo main main"
+        "sections main main";
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto 1fr;
     background-color: black;
@@ -26,6 +26,12 @@
 
 .page .header {
     grid-area: title;
+    background-color: #008cff;
+}
+
+.page .dark-toggle {
+    grid-area: dark;
+    aspect-ratio: 1 / 1;
     background-color: #008cff;
 }
 
