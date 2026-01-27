@@ -12,7 +12,7 @@
         "logo title dark"
         "logo main main"
         "sections main main";
-    grid-template-columns: auto 200fr 1fr;
+    grid-template-columns: 1fr 200fr 1fr;
     grid-template-rows: auto auto 1fr;
     background-color: black;
     gap: 5px;

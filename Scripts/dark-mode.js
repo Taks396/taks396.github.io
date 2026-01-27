@@ -1,11 +1,28 @@
-// function getChildren(x) { return x.children.length > 0 ? [...x.children].map(y => getChildren(y)) : x }
+// On page load, set 'darkmode' to system settings
+document.addEventListener('DOMContentLoaded', (event) => {
+   if (localStorage.getItem('darkmode') == null) {
+      localStorage.setItem('darkmode', window?.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false);
+   }
+   darkModeToggle()
+});
 
-function darkModeToggle() {
+// 
+function darkModeToggle(change = false) {
+   console.log("Function Called")
    var text = document.querySelector(".page");
    var children = text.querySelectorAll("*");
    var toggle = text.getElementsByClassName("dark-toggle")[0];
 
-   if (toggle.style.filter != "invert(1)"){
+   if (change == true) {
+      if (localStorage.getItem('darkmode') == "true") {
+         localStorage.setItem('darkmode', "false")
+      } else {
+         localStorage.setItem('darkmode', "true")
+      }
+   }
+
+   if (localStorage.getItem('darkmode') == "true"){
+      console.log("DARK")
       toggle.style.backgroundColor = "#dddddd";
       toggle.style.filter = "invert(1)";
       text.style.backgroundColor = "#616161";
@@ -21,12 +38,12 @@ function darkModeToggle() {
             descendant.style.borderColor = "#b1b1b1";
          }
       });
-   } else {
+   } else if (localStorage.getItem('darkmode') == "false") {
+      console.log("LIGHT")
       toggle.style.backgroundColor = "#008cff";
       toggle.style.filter = "none";
       text.style.backgroundColor = "#000000";
       children.forEach(descendant => {
-         console.log(descendant.tagName)
          descendant.style.color = "#000000";
          if (descendant.classList.contains("header")) {
             descendant.style.backgroundColor = "#008cff";
@@ -39,4 +56,5 @@ function darkModeToggle() {
          }
       });
    }
+   console.log(localStorage.getItem('darkmode'))
 }
