@@ -1,0 +1,11 @@
+{
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "Taks396/site-image-repo": {
+          "permissions": "write-all"
+        }
+      }
+    }
+  }
+}
