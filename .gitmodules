@@ -1,3 +1,4 @@
 [submodule "site-image-repo"]
 	path = site-image-repo
 	url = https://github.com/Taks396/site-image-repo.git
+	branch = image-main
