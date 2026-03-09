@@ -9,14 +9,15 @@
 .page {
     display: grid;
     grid-template-areas: 
-        "logo title"
-        "logo main"
-        "sections main";
-    grid-template-columns: auto 1fr;
+        "logo title dark"
+        "logo main main"
+        "sections main main";
+    grid-template-columns: 1fr 200fr 1fr;
     grid-template-rows: auto auto 1fr;
     background-color: black;
     gap: 5px;
     height: 100vh;
+    width: 100vw;
 }
 
 .page .logo {
@@ -27,6 +28,13 @@
 .page .header {
     grid-area: title;
     background-color: #008cff;
+}
+
+.page .dark-toggle {
+    grid-area: dark;
+    aspect-ratio: 1 / 1;
+    background-color: #008cff;
+    filter: none;
 }
 
 .page .sidebar {
@@ -74,8 +82,9 @@ ul.items {
 
 /* Page Stylization */
 h1, h2, h3, h4 {
-    padding: 5px 0 5px 10px;
+    padding: 5px 10px 5px 10px;
 	text-decoration: underline;
+    white-space: nowrap;
 }
 
 h4 {
@@ -98,4 +107,38 @@ a {
 
 summary {
     list-style: none;
+}
+
+table{
+    margin-left: 20px;
+    text-align: center;
+}
+
+th, td {
+    outline: 1px solid #b1b1b1;
+    padding: 3px;
+}
+
+.hover-container {
+  position: relative; 
+  display: inline-block;
+  color: blue;
+  cursor:text;
+}
+
+.hover-container:hover .hover-image {
+  display: block;
+}
+
+img.hover-image {
+  display: none; 
+  position: absolute; 
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  z-index: 10;
+  width: 250px; 
+  height: auto;
+  box-shadow: 0 0 10px 5px rgba(0,0,0,1);
 }
