@@ -108,3 +108,13 @@ a {
 summary {
     list-style: none;
 }
+
+table{
+    margin-left: 20px;
+    text-align: center;
+}
+
+th, td {
+    outline: 1px solid #b1b1b1;
+    padding: 3px;
+}
