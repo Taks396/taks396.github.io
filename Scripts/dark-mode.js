@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 // 
 function darkModeToggle(change = false) {
-   console.log("Function Called")
    var text = document.querySelector(".page");
    var children = text.querySelectorAll("*");
    var toggle = text.getElementsByClassName("dark-toggle")[0];
@@ -22,7 +21,6 @@ function darkModeToggle(change = false) {
    }
 
    if (localStorage.getItem('darkmode') == "true"){
-      console.log("DARK")
       toggle.style.backgroundColor = "#dddddd";
       toggle.style.filter = "invert(1)";
       text.style.backgroundColor = "#616161";
@@ -39,7 +37,6 @@ function darkModeToggle(change = false) {
          }
       });
    } else if (localStorage.getItem('darkmode') == "false") {
-      console.log("LIGHT")
       toggle.style.backgroundColor = "#008cff";
       toggle.style.filter = "none";
       text.style.backgroundColor = "#000000";
@@ -56,5 +53,4 @@ function darkModeToggle(change = false) {
          }
       });
    }
-   console.log(localStorage.getItem('darkmode'))
 }
