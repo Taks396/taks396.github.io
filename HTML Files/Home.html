@@ -66,7 +66,7 @@
             <h2 id="feedback">Feedback</h2>
             <p>
                 GitHub Pages does not allow dynamic sites.
-                I have found a method to get around this using the Utterances plugin which maps comments on the site to an issue in the repository.
+                I have found a method to get around this using the Giscus application which maps comments on the site to a GitHub Disscussion in the repository.
                 If I can ever figure out how to securely host my own site, this will become obsolete, but for the time being, it works.
                 I am also aware that this feature requires that you have a GitHub account to leave any comments.
                 There is nothing I can do about this until I can detach the site from GitHub Pages.
@@ -102,14 +102,27 @@
                     </p>
                 </li>
             </ol>
-            
-            <script src="https://utteranc.es/client.js"
-                repo="Taks396/taks396.github.io"
-                issue-number="20"
-                theme="preferred-color-scheme"
-                crossorigin="anonymous"
-                async>
-            </script>
+
+            <br>
+                        
+            <div style="width: 80%; display: flex; justify-self: center;">
+                <script src="https://giscus.app/client.js"
+                    data-repo="Taks396/taks396.github.io"
+                    data-repo-id="R_kgDOQ-iAJg"
+                    data-category="Announcements"
+                    data-category-id="DIC_kwDOQ-iAJs4C-Szz"
+                    data-mapping="specific"
+                    data-term="Feedback"
+                    data-strict="1"
+                    data-reactions-enabled="0"
+                    data-emit-metadata="0"
+                    data-input-position="bottom"
+                    data-theme="preferred_color_scheme"
+                    data-lang="en"
+                    crossorigin="anonymous"
+                    async>
+                </script>
+            </div>
         </div>
         <script src="../Scripts/dark-mode.js"></script>
     </body>
