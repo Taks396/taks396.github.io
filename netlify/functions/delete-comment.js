@@ -1,4 +1,18 @@
-const fetch = require('node-fetch');
+const https = require('https');
+
+// Helper wrapper to process pure HTTPS requests natively
+function makeHttpsRequest(options, postData = null) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve({ statusCode: res.statusCode, body: data }));
+    });
+    req.on('error', (err) => reject(err));
+    if (postData) req.write(postData);
+    req.end();
+  });
+}
 
 exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
@@ -9,26 +23,34 @@ exports.handler = async function(event, context) {
   try {
     const { submissionId, commentId, token } = JSON.parse(event.body);
 
-    // 1. Fetch the exact single submission to verify token validation
-    const checkRes = await fetch(`https://netlify.com{submissionId}`, {
-      headers: { Authorization: `Bearer ${NETLIFY_TOKEN}` }
-    });
-    
-    if (!checkRes.ok) return { statusCode: 404, body: 'Comment not found' };
-    const submission = await checkRes.json();
+    // 1. Fetch single submission data to verify token
+    const checkOptions = {
+      hostname: 'api.netlify.com',
+      path: `/api/v1/submissions/${submissionId}`,
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${NETLIFY_TOKEN}`, 'User-Agent': 'Netlify-Function' }
+    };
 
-    // 2. Validate token matched what was natively stored
+    const checkRes = await makeHttpsRequest(checkOptions);
+    if (checkRes.statusCode !== 200) return { statusCode: 404, body: 'Comment not found' };
+    
+    const submission = JSON.parse(checkRes.body);
+
+    // 2. Validate token security credentials
     if (submission.data.delete_token !== token || submission.data.comment_id !== commentId) {
       return { statusCode: 403, body: 'Unauthorized deletion request' };
     }
 
-    // 3. Perform the safe execution delete request
-    const deleteRes = await fetch(`https://netlify.com{submissionId}`, {
+    // 3. Issue native DELETE request
+    const deleteOptions = {
+      hostname: 'api.netlify.com',
+      path: `/api/v1/submissions/${submissionId}`,
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${NETLIFY_TOKEN}` }
-    });
+      headers: { 'Authorization': `Bearer ${NETLIFY_TOKEN}`, 'User-Agent': 'Netlify-Function' }
+    };
 
-    if (!deleteRes.ok) throw new Error('Netlify API rejected deletion');
+    const deleteRes = await makeHttpsRequest(deleteOptions);
+    if (deleteRes.statusCode >= 300) throw new Error('Netlify API rejected deletion execution');
 
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (error) {
