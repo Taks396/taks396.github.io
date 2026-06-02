@@ -32,11 +32,15 @@
     <input type="hidden" name="form-name" value="site-feedback" />
     <input type="hidden" name="comment_id" id="commentId" />
     <input type="hidden" name="delete_token" id="deleteToken" />
+    <!-- Add this line to track edits -->
+    <input type="hidden" name="edited_id" id="editedId" value="" />
     
     <input type="text" name="name" id="nameInput" placeholder="Anonymous" />
     <textarea name="comment" id="commentInput" placeholder="Leave your feedback..." required></textarea>
-    <button type="submit">Post Comment</button>
+    <button type="submit" id="submitBtn">Post Comment</button>
+    <button type="button" id="cancelEditBtn" style="display:none;" onclick="cancelEditing()">Cancel Edit</button>
   </form>
+
 
   <h3>Comments</h3>
   <div id="commentsDisplay">Loading comments...</div>
@@ -44,8 +48,9 @@
   <script>
     const form = document.getElementById('commentForm');
     const commentsDisplay = document.getElementById('commentsDisplay');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-    // 1. Generate unique IDs for ownership tracking
     function prepareTokens() {
       const cryptoId = crypto.randomUUID();
       const cryptoToken = crypto.randomUUID();
@@ -54,33 +59,48 @@
       return { cryptoId, cryptoToken };
     }
 
-    // 2. Submit Comment via AJAX and immediately display it
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // Capture what the user typed before clearing the form
       const typedName = document.getElementById('nameInput').value.trim() || 'Anonymous';
       const typedComment = document.getElementById('commentInput').value;
+      const isEditing = document.getElementById('editedId').value !== "";
 
-      const { cryptoId, cryptoToken } = prepareTokens();
+      let cryptoId, cryptoToken;
+      
+      if (isEditing) {
+        // Keep the old IDs if editing
+        cryptoId = document.getElementById('commentId').value;
+        cryptoToken = document.getElementById('deleteToken').value;
+      } else {
+        // Generate fresh ones if brand new
+        const tokens = prepareTokens();
+        cryptoId = tokens.cryptoId;
+        cryptoToken = tokens.cryptoToken;
+      }
+      
       const formData = new FormData(form);
       if(!formData.get('name')) formData.set('name', 'Anonymous');
 
-      // OPTIMISTIC UPDATE: Instantly show the comment on screen for the user
+      // Optimistic visual update
       const instantHTML = `
         <div class="comment-card" id="temp-${cryptoId}" style="opacity: 0.6;">
-          <div class="comment-author">${typedName} (Posting...)</div>
+          <div class="comment-author">${typedName} (${isEditing ? 'Saving edit...' : 'Posting...'})</div>
           <p>${typedComment}</p>
         </div>
       `;
       
-      // If "No comments yet" is visible, clear it out first
-      if (commentsDisplay.innerHTML.includes('No comments yet')) {
+      if (!isEditing && commentsDisplay.innerHTML.includes('No comments yet')) {
         commentsDisplay.innerHTML = '';
       }
       
-      // Prepend the new comment to the top of the list instantly
-      commentsDisplay.insertAdjacentHTML('afterbegin', instantHTML);
+      if (isEditing) {
+        // Temporarily replace the old card layout directly
+        const oldCard = document.querySelector(`[data-id="${cryptoId}"]`);
+        if (oldCard) oldCard.outerHTML = instantHTML;
+      } else {
+        commentsDisplay.insertAdjacentHTML('afterbegin', instantHTML);
+      }
 
       try {
         await fetch('/', {
@@ -89,30 +109,28 @@
           body: new URLSearchParams(formData).toString()
         });
 
-        // Save local keys to browser memory so they can delete it
-        const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
-        localOwnership[cryptoId] = cryptoToken;
-        localStorage.setItem('my_comments', JSON.stringify(localOwnership));
+        if (!isEditing) {
+          const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
+          localOwnership[cryptoId] = cryptoToken;
+          localStorage.setItem('my_comments', JSON.stringify(localOwnership));
+        } else {
+          // If editing succeeded, delete the older record entry quietly via your backend API
+          const oldSubmissionId = document.getElementById('editedId').value;
+          await fetch('/api/delete-comment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submissionId: oldSubmissionId, commentId: cryptoId, token: cryptoToken })
+          });
+        }
 
-        // Reset the input fields
-        form.reset();
-
-        // Give Netlify a tiny 1.5-second breather to process the DB backend, 
-        // then cleanly reload to turn the temporary comment into a real, deletable comment.
-        setTimeout(() => {
-          loadComments();
-        }, 1500);
-
+        cancelEditing(); // Reset UI state
+        setTimeout(() => { loadComments(); }, 1500);
       } catch (err) {
-        // If the network fails, remove the fake comment and alert the user
-        const tempElement = document.getElementById(`temp-${cryptoId}`);
-        if (tempElement) tempElement.remove();
-        alert('Failed to post comment.');
+        alert('Failed to save changes.');
+        loadComments();
       }
     });
 
-
-    // 3. Fetch comments from Serverless Function and display them
     async function loadComments() {
       try {
         const res = await fetch('/api/get-comments');
@@ -125,13 +143,17 @@
         }
 
         commentsDisplay.innerHTML = comments.map(c => {
-          // Check if this browser created this comment ID
-          const hasDeleteRights = localOwnership[c.id] !== undefined;
+          const hasRights = localOwnership[c.id] !== undefined;
           return `
-            <div class="comment-card">
+            <div class="comment-card" data-id="${c.id}">
               <div class="comment-author">${c.name}</div>
-              <p>${c.message}</p>
-              ${hasDeleteRights ? `<button class="delete-btn" onclick="deleteComment('${c.submission_id}', '${c.id}')">Delete</button>` : ''}
+              <p class="comment-text">${c.message}</p>
+              ${hasRights ? `
+                <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 5px;">
+                  <button onclick="startEditing('${c.submission_id}', '${c.id}', this)">Edit</button>
+                  <button style="background: #ff4d4d; color: white; border: none; padding: 2px 5px; cursor: pointer;" onclick="deleteComment('${c.submission_id}', '${c.id}')">Delete</button>
+                </div>
+              ` : ''}
             </div>
           `;
         }).join('');
@@ -140,34 +162,51 @@
       }
     }
 
-    // 4. Request deletion via API
+    window.startEditing = (submissionId, commentId, buttonEl) => {
+      const card = buttonEl.closest('.comment-card');
+      const author = card.querySelector('.comment-author').innerText;
+      const text = card.querySelector('.comment-text').innerText;
+      const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
+
+      document.getElementById('commentId').value = commentId;
+      document.getElementById('deleteToken').value = localOwnership[commentId];
+      document.getElementById('editedId').value = submissionId; // Active flag
+      
+      document.getElementById('nameInput').value = author;
+      document.getElementById('commentInput').value = text;
+      
+      submitBtn.innerText = "Save Edit";
+      cancelEditBtn.style.display = "inline-block";
+      document.getElementById('commentInput').focus();
+    };
+
+    window.cancelEditing = () => {
+      form.reset();
+      document.getElementById('editedId').value = "";
+      submitBtn.innerText = "Post Comment";
+      cancelEditBtn.style.display = "none";
+    };
+
     window.deleteComment = async (submissionId, commentId) => {
       if (!confirm('Are you sure you want to delete your comment?')) return;
-      
       const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
       const token = localOwnership[commentId];
-
       try {
         const res = await fetch('/api/delete-comment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ submissionId, commentId, token })
         });
-
         if (res.ok) {
           delete localOwnership[commentId];
           localStorage.setItem('my_comments', JSON.stringify(localOwnership));
           loadComments();
-        } else {
-          alert('Failed to delete comment.');
-        }
-      } catch (err) {
-        alert('An error occurred.');
-      }
+        } else { alert('Failed to delete.'); }
+      } catch (err) { alert('An error occurred.'); }
     };
 
-    // Initial load
     loadComments();
+
   </script>
 </body>
 </html>
