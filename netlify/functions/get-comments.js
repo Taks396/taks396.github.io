@@ -11,10 +11,9 @@ exports.handler = async function(event, context) {
     };
   }
 
-  // Wrap the legacy HTTPS callback in a clean Promise for async/await compliance
   return new Promise((resolve) => {
     const options = {
-      hostname: '://netlify.com',
+      hostname: 'api.netlify.com',
       path: `/api/v1/sites/${SITE_ID}/submissions`,
       method: 'GET',
       headers: {
@@ -37,22 +36,20 @@ exports.handler = async function(event, context) {
           }
 
           const data = JSON.parse(rawData);
-          
-          // Use a Map tracking mechanism to filter duplicates, keeping only the most recent entry
           const uniqueCommentsMap = new Map();
 
           data
-            .filter(sub => sub.form_name === 'site-feedback')
+            .filter(sub => sub.form_name === 'site-feedback' && sub.data)
             .forEach(sub => {
-              const id = sub.data.comment_id;
-              // Submissions natively come down newest first. 
-              // If we already added this comment ID, skip older entries.
+              // SAFETY FIX: Fallback to submission ID if comment_id is missing/old
+              const id = sub.data.comment_id || `old-${sub.id}`;
+              
               if (!uniqueCommentsMap.has(id)) {
                 uniqueCommentsMap.set(id, {
                   submission_id: sub.id,
                   id: id,
                   name: sub.data.name || 'Anonymous',
-                  message: sub.data.comment,
+                  message: sub.data.comment || '',
                   date: sub.created_at
                 });
               }
