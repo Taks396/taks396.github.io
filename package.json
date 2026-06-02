@@ -1,0 +1,24 @@
+{
+  "name": "taks396.github.io",
+  "version": "1.0.0",
+  "description": "Welcome to the GitHub page for my personal website. I'd link it in this README, but you can just click on it to the right. Anyway, this is the main repo for the content hosted on my site, so if you want the nitty gritty on how it's structured, continue reading and browse the files.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Taks396/taks396.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Taks396/taks396.github.io/issues"
+  },
+  "homepage": "https://github.com/Taks396/taks396.github.io#readme",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
+}
