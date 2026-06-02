@@ -1,8 +1,16 @@
 import { getStore } from "@netlify/blobs";
 
 export default async function handler(request, context) {
+  const siteID = process.env.SITE_ID;
+  const token = process.env.NETLIFY_AUTH_TOKEN;
+
   try {
-    const commentsStore = getStore("site-comments");
+    // FIX: Manually supply siteID and token so branch deploys can access the store
+    const commentsStore = getStore({
+      name: "site-comments",
+      siteID: siteID,
+      token: token
+    });
     
     // 1. List all active keys inside your blob store
     const list = await commentsStore.list();
@@ -17,7 +25,6 @@ export default async function handler(request, context) {
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .map(({ token, ...publicData }) => publicData); // Hide delete token from public
 
-    // Return using native Response objects required by Functions v2
     return new Response(JSON.stringify(comments), {
       status: 200,
       headers: { 

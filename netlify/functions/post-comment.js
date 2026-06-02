@@ -5,15 +5,23 @@ export default async function handler(request, context) {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
+  const siteID = process.env.SITE_ID;
+  const token = process.env.NETLIFY_AUTH_TOKEN;
+
   try {
-    // Read the incoming payload via request.json() natively
-    const { id, token, name, message } = await request.json();
-    const commentsStore = getStore("site-comments");
+    const { id, token: userToken, name, message } = await request.json();
+    
+    // FIX: Pass site credentials into store configuration
+    const commentsStore = getStore({
+      name: "site-comments",
+      siteID: siteID,
+      token: token
+    });
 
     const existing = await commentsStore.get(id, { type: "json" });
     
     // Security check
-    if (existing && existing.token !== token) {
+    if (existing && existing.token !== userToken) {
       return new Response(JSON.stringify({ error: "Unauthorized modification" }), { 
         status: 403,
         headers: { "Content-Type": "application/json" }
@@ -23,7 +31,7 @@ export default async function handler(request, context) {
     // Save payload
     await commentsStore.setJSON(id, {
       id,
-      token,
+      token: userToken,
       name,
       message,
       date: existing ? existing.date : new Date().toISOString()

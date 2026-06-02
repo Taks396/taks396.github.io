@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Taks396/taks396.github.io#readme",
   "dependencies": {
+    "@netlify/blobs": "^10.7.9",
     "node-fetch": "^2.7.0"
   }
 }
