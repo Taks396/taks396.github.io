@@ -13,34 +13,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anonymous Comments</title>
+  <title>Anonymous Comments via Blobs</title>
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
     form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
     textarea { height: 100px; }
     .comment-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; position: relative; }
     .comment-author { font-weight: bold; margin-bottom: 5px; }
-    .delete-btn { position: absolute; top: 15px; right: 15px; background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+    .btn-group { position: absolute; top: 15px; right: 15px; display: flex; gap: 5px; }
+    .delete-btn { background: #ff4d4d; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; }
+    .edit-btn { background: #e0e0e0; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <h2>Feedback Section</h2>
+  <h2>Feedback Section (Blobs)</h2>
   
-  <!-- Netlify Forms tracking form -->
-  <form id="commentForm" name="site-feedback" action="/" method="POST" data-netlify="true">
-    <input type="hidden" name="form-name" value="site-feedback" />
-    <input type="hidden" name="comment_id" id="commentId" />
-    <input type="hidden" name="delete_token" id="deleteToken" />
-    <!-- Add this line to track edits -->
-    <input type="hidden" name="edited_id" id="editedId" value="" />
+  <form id="commentForm">
+    <input type="hidden" id="commentId" />
+    <input type="hidden" id="deleteToken" />
+    <input type="hidden" id="isEditing" value="false" />
     
-    <input type="text" name="name" id="nameInput" placeholder="Anonymous" />
-    <textarea name="comment" id="commentInput" placeholder="Leave your feedback..." required></textarea>
-    <button type="submit" id="submitBtn">Post Comment</button>
-    <button type="button" id="cancelEditBtn" style="display:none;" onclick="cancelEditing()">Cancel Edit</button>
+    <input type="text" id="nameInput" placeholder="Anonymous" />
+    <textarea id="commentInput" placeholder="Leave your feedback..." required></textarea>
+    
+    <div>
+      <button type="submit" id="submitBtn">Post Comment</button>
+      <button type="button" id="cancelBtn" style="display:none;" onclick="cancelEditing()">Cancel</button>
+    </div>
   </form>
-
 
   <h3>Comments</h3>
   <div id="commentsDisplay">Loading comments...</div>
@@ -49,88 +50,71 @@
     const form = document.getElementById('commentForm');
     const commentsDisplay = document.getElementById('commentsDisplay');
     const submitBtn = document.getElementById('submitBtn');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
 
-    function prepareTokens() {
-      const cryptoId = crypto.randomUUID();
-      const cryptoToken = crypto.randomUUID();
-      document.getElementById('commentId').value = cryptoId;
-      document.getElementById('deleteToken').value = cryptoToken;
-      return { cryptoId, cryptoToken };
-    }
-
+    // 1. Submit or Edit Comment
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const typedName = document.getElementById('nameInput').value.trim() || 'Anonymous';
-      const typedComment = document.getElementById('commentInput').value;
-      const isEditing = document.getElementById('editedId').value !== "";
-
-      let cryptoId, cryptoToken;
+      const name = document.getElementById('nameInput').value.trim() || 'Anonymous';
+      const message = document.getElementById('commentInput').value;
+      const editing = document.getElementById('isEditing').value === "true";
       
-      if (isEditing) {
-        // KEEP THE SAME IDENTIFIERS so the backend knows it's an overwrite
-        cryptoId = document.getElementById('commentId').value;
-        cryptoToken = document.getElementById('deleteToken').value;
-      } else {
-        // Generate fresh ones if it's a completely new post
-        const tokens = prepareTokens();
-        cryptoId = tokens.cryptoId;
-        cryptoToken = tokens.cryptoToken;
+      let id = document.getElementById('commentId').value;
+      let token = document.getElementById('deleteToken').value;
+
+      if (!editing) {
+        id = crypto.randomUUID();
+        token = crypto.randomUUID();
       }
-      
-      const formData = new FormData(form);
-      if(!formData.get('name')) formData.set('name', 'Anonymous');
 
-      // Optimistic visual update (Shows instantly on screen)
+      // Optimistic instant UI update
       const instantHTML = `
-        <div class="comment-card" id="temp-${cryptoId}" style="opacity: 0.6;">
-          <div class="comment-author">${typedName} ${isEditing ? '(Saving edit...)' : '(Posting...)'}</div>
-          <p>${typedComment}</p>
+        <div class="comment-card" id="temp-${id}" style="opacity: 0.6;">
+          <div class="comment-author">${name} (Saving...)</div>
+          <p>${message}</p>
         </div>
       `;
       
-      if (!isEditing && commentsDisplay.innerHTML.includes('No comments yet')) {
+      if (!editing && commentsDisplay.innerHTML.includes('No comments yet')) {
         commentsDisplay.innerHTML = '';
       }
-      
-      if (isEditing) {
-        const oldCard = document.querySelector(`[data-id="${cryptoId}"]`);
-        if (oldCard) oldCard.outerHTML = instantHTML;
+
+      if (editing) {
+        document.querySelector(`[data-id="${id}"]`).outerHTML = instantHTML;
       } else {
         commentsDisplay.insertAdjacentHTML('afterbegin', instantHTML);
       }
 
       try {
-        // Send the post data securely to Netlify's form processing engine
-        await fetch('/', {
+        const res = await fetch('/api/post-comment', {
           method: 'POST',
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams(formData).toString()
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, token, name, message })
         });
 
-        // Save local keys to browser memory if it's new
-        if (!isEditing) {
-          const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
-          localOwnership[cryptoId] = cryptoToken;
-          localStorage.setItem('my_comments', JSON.stringify(localOwnership));
+        if (!res.ok) throw new Error();
+
+        if (!editing) {
+          const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
+          ownership[id] = token;
+          localStorage.setItem('blob_comments', JSON.stringify(ownership));
         }
 
-        cancelEditing(); // Safely clear out input boxes and reset form fields
-        
-        // Increased breathing room to 2.5 seconds to ensure Netlify completes its database write
-        setTimeout(() => { loadComments(); }, 2500);
+        cancelEditing();
+        loadComments(); // Immediate reload works perfectly now because Blobs are instant!
       } catch (err) {
-        alert('Failed to save changes.');
+        alert('Failed to save comment.');
         loadComments();
       }
     });
 
+    // 2. Fetch and display comments
     async function loadComments() {
       try {
         const res = await fetch('/api/get-comments');
         const comments = await res.json();
-        const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
+        const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
         
         if (comments.length === 0) {
           commentsDisplay.innerHTML = '<p>No comments yet. Be the first!</p>';
@@ -138,15 +122,15 @@
         }
 
         commentsDisplay.innerHTML = comments.map(c => {
-          const hasRights = localOwnership[c.id] !== undefined;
+          const hasRights = ownership[c.id] !== undefined;
           return `
             <div class="comment-card" data-id="${c.id}">
               <div class="comment-author">${c.name}</div>
               <p class="comment-text">${c.message}</p>
               ${hasRights ? `
-                <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 5px;">
-                  <button onclick="startEditing('${c.submission_id}', '${c.id}', this)">Edit</button>
-                  <button style="background: #ff4d4d; color: white; border: none; padding: 2px 5px; cursor: pointer;" onclick="deleteComment('${c.submission_id}', '${c.id}')">Delete</button>
+                <div class="btn-group">
+                  <button class="edit-btn" onclick="startEditing('${c.id}', this)">Edit</button>
+                  <button class="delete-btn" onclick="deleteComment('${c.id}')">Delete</button>
                 </div>
               ` : ''}
             </div>
@@ -157,51 +141,53 @@
       }
     }
 
-    window.startEditing = (submissionId, commentId, buttonEl) => {
-      const card = buttonEl.closest('.comment-card');
-      const author = card.querySelector('.comment-author').innerText;
+    window.startEditing = (id, btn) => {
+      const card = btn.closest('.comment-card');
+      const name = card.querySelector('.comment-author').innerText;
       const text = card.querySelector('.comment-text').innerText;
-      const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
+      const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
 
-      document.getElementById('commentId').value = commentId;
-      document.getElementById('deleteToken').value = localOwnership[commentId];
-      document.getElementById('editedId').value = submissionId; // Active flag
+      document.getElementById('commentId').value = id;
+      document.getElementById('deleteToken').value = ownership[id];
+      document.getElementById('isEditing').value = "true";
       
-      document.getElementById('nameInput').value = author;
+      document.getElementById('nameInput').value = name;
       document.getElementById('commentInput').value = text;
       
       submitBtn.innerText = "Save Edit";
-      cancelEditBtn.style.display = "inline-block";
-      document.getElementById('commentInput').focus();
+      cancelBtn.style.style.display = "inline-block";
     };
 
     window.cancelEditing = () => {
       form.reset();
-      document.getElementById('editedId').value = "";
+      document.getElementById('isEditing').value = "false";
+      document.getElementById('commentId').value = "";
+      document.getElementById('deleteToken').value = "";
       submitBtn.innerText = "Post Comment";
-      cancelEditBtn.style.display = "none";
+      cancelBtn.style.display = "none";
     };
 
-    window.deleteComment = async (submissionId, commentId) => {
-      if (!confirm('Are you sure you want to delete your comment?')) return;
-      const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
-      const token = localOwnership[commentId];
+    window.deleteComment = async (id) => {
+      if (!confirm('Delete comment?')) return;
+      const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
+      const token = ownership[id];
+
       try {
         const res = await fetch('/api/delete-comment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ submissionId, commentId, token })
+          body: JSON.stringify({ id, token })
         });
+
         if (res.ok) {
-          delete localOwnership[commentId];
-          localStorage.setItem('my_comments', JSON.stringify(localOwnership));
+          delete ownership[id];
+          localStorage.setItem('blob_comments', JSON.stringify(ownership));
           loadComments();
         } else { alert('Failed to delete.'); }
       } catch (err) { alert('An error occurred.'); }
     };
 
     loadComments();
-
   </script>
 </body>
 </html>
