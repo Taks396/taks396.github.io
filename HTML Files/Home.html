@@ -104,25 +104,20 @@
             </ol>
 
             <br>
-                        
-            <div style="width: 80%; display: flex; justify-self: center;">
-                <script src="https://giscus.app/client.js"
-                    data-repo="Taks396/taks396.github.io"
-                    data-repo-id="R_kgDOQ-iAJg"
-                    data-category="Announcements"
-                    data-category-id="DIC_kwDOQ-iAJs4C-Szz"
-                    data-mapping="specific"
-                    data-term="Feedback"
-                    data-strict="1"
-                    data-reactions-enabled="0"
-                    data-emit-metadata="0"
-                    data-input-position="bottom"
-                    data-theme="https://github.com/Taks396/taks396.github.io/blob/main/CSS%20Styles/Base%20Style.css"
-                    data-lang="en"
-                    crossorigin="anonymous"
-                    async>
-                </script>
-            </div>
+
+            <form id="commentForm" name="site-feedback" method="POST" data-netlify="true">
+                <input type="text" name="name" placeholder="Your Name (Optional)" required />
+                <textarea name="comment" placeholder="Leave your feedback..." required></textarea>
+                
+                <!-- Secret fields populated by JavaScript -->
+                <input type="hidden" name="comment_id" id="commentId" />
+                <input type="hidden" name="delete_token" id="deleteToken" />
+                
+                <button type="submit">Post Comment</button>
+            </form>
+
+            <div id="comments-display"></div>
+
         </div>
         <script src="../Scripts/dark-mode.js"></script>
     </body>
