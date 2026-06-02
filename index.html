@@ -69,11 +69,11 @@
       let cryptoId, cryptoToken;
       
       if (isEditing) {
-        // Keep the old IDs if editing
+        // KEEP THE SAME IDENTIFIERS so the backend knows it's an overwrite
         cryptoId = document.getElementById('commentId').value;
         cryptoToken = document.getElementById('deleteToken').value;
       } else {
-        // Generate fresh ones if brand new
+        // Generate fresh ones if it's a completely new post
         const tokens = prepareTokens();
         cryptoId = tokens.cryptoId;
         cryptoToken = tokens.cryptoToken;
@@ -82,10 +82,10 @@
       const formData = new FormData(form);
       if(!formData.get('name')) formData.set('name', 'Anonymous');
 
-      // Optimistic visual update
+      // Optimistic visual update (Shows instantly on screen)
       const instantHTML = `
         <div class="comment-card" id="temp-${cryptoId}" style="opacity: 0.6;">
-          <div class="comment-author">${typedName} (${isEditing ? 'Saving edit...' : 'Posting...'})</div>
+          <div class="comment-author">${typedName} ${isEditing ? '(Saving edit...)' : '(Posting...)'}</div>
           <p>${typedComment}</p>
         </div>
       `;
@@ -95,7 +95,6 @@
       }
       
       if (isEditing) {
-        // Temporarily replace the old card layout directly
         const oldCard = document.querySelector(`[data-id="${cryptoId}"]`);
         if (oldCard) oldCard.outerHTML = instantHTML;
       } else {
@@ -103,28 +102,24 @@
       }
 
       try {
+        // Send the post data securely to Netlify's form processing engine
         await fetch('/', {
           method: 'POST',
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams(formData).toString()
         });
 
+        // Save local keys to browser memory if it's new
         if (!isEditing) {
           const localOwnership = JSON.parse(localStorage.getItem('my_comments') || '{}');
           localOwnership[cryptoId] = cryptoToken;
           localStorage.setItem('my_comments', JSON.stringify(localOwnership));
-        } else {
-          // If editing succeeded, delete the older record entry quietly via your backend API
-          const oldSubmissionId = document.getElementById('editedId').value;
-          await fetch('/api/delete-comment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ submissionId: oldSubmissionId, commentId: cryptoId, token: cryptoToken })
-          });
         }
 
-        cancelEditing(); // Reset UI state
-        setTimeout(() => { loadComments(); }, 1500);
+        cancelEditing(); // Safely clear out input boxes and reset form fields
+        
+        // Increased breathing room to 2.5 seconds to ensure Netlify completes its database write
+        setTimeout(() => { loadComments(); }, 2500);
       } catch (err) {
         alert('Failed to save changes.');
         loadComments();
