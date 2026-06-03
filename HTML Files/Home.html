@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Home</title>
-        <link rel="stylesheet" href="../CSS Styles/Base Style.css">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
+  <head>
+    <title>Home</title>
+    <link rel="stylesheet" href="../CSS Styles/Base Style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
 
     <body class="page">
         <img class="logo" src="../site-image-repo/Core Images/Logo.png" alt="Taks Logo" width="250px">
@@ -105,18 +105,166 @@
 
             <br>
 
-            <form id="commentForm" name="site-feedback" method="POST" data-netlify="true">
-                <input type="text" name="name" placeholder="Your Name (Optional)" required />
-                <textarea name="comment" placeholder="Leave your feedback..." required></textarea>
+            <form id="commentForm">
+                <input type="hidden" id="commentId" />
+                <input type="hidden" id="deleteToken" />
+                <input type="hidden" id="isEditing" value="false" />
                 
-                <!-- Secret fields populated by JavaScript -->
-                <input type="hidden" name="comment_id" id="commentId" />
-                <input type="hidden" name="delete_token" id="deleteToken" />
+                <input type="text" id="nameInput" placeholder="Anonymous" />
+                <textarea id="commentInput" placeholder="Leave your feedback..." required></textarea>
                 
-                <button type="submit">Post Comment</button>
+                <div>
+                    <button type="submit" id="submitBtn">Post Comment</button>
+                    <button type="button" id="cancelBtn" style="display:none;" onclick="cancelEditing()">Cancel</button>
+                </div>
             </form>
 
-            <div id="comments-display"></div>
+            <h3>Comments</h3>
+            <div id="commentsDisplay">Loading comments...</div>
+
+            <script>
+                const form = document.getElementById('commentForm');
+                const commentsDisplay = document.getElementById('commentsDisplay');
+                const submitBtn = document.getElementById('submitBtn');
+                const cancelBtn = document.getElementById('cancelBtn');
+
+                // 1. Submit or Edit Comment
+                form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('nameInput').value.trim() || 'Anonymous';
+                const message = document.getElementById('commentInput').value;
+                const editing = document.getElementById('isEditing').value === "true";
+                
+                let id = document.getElementById('commentId').value;
+                let token = document.getElementById('deleteToken').value;
+
+                if (!editing) {
+                    id = crypto.randomUUID();
+                    token = crypto.randomUUID();
+                }
+
+                // Optimistic instant UI update
+                const instantHTML = `
+                    <div class="comment-card" id="temp-${id}" style="opacity: 0.6;">
+                    <div class="comment-author">${name} (Saving...)</div>
+                    <p>${message}</p>
+                    </div>
+                `;
+                
+                if (!editing && commentsDisplay.innerHTML.includes('No comments yet')) {
+                    commentsDisplay.innerHTML = '';
+                }
+
+                if (editing) {
+                    document.querySelector(`[data-id="${id}"]`).outerHTML = instantHTML;
+                } else {
+                    commentsDisplay.insertAdjacentHTML('afterbegin', instantHTML);
+                }
+
+                try {
+                    const res = await fetch('/api/post-comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, token, name, message })
+                    });
+
+                    if (!res.ok) throw new Error();
+
+                    if (!editing) {
+                    const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
+                    ownership[id] = token;
+                    localStorage.setItem('blob_comments', JSON.stringify(ownership));
+                    }
+
+                    cancelEditing();
+                    loadComments(); // Immediate reload works perfectly now because Blobs are instant!
+                } catch (err) {
+                    alert('Failed to save comment.');
+                    loadComments();
+                }
+                });
+
+                // 2. Fetch and display comments
+                async function loadComments() {
+                try {
+                    const res = await fetch('/api/get-comments');
+                    const comments = await res.json();
+                    const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
+                    
+                    if (comments.length === 0) {
+                    commentsDisplay.innerHTML = '<p>No comments yet. Be the first!</p>';
+                    return;
+                    }
+
+                    commentsDisplay.innerHTML = comments.map(c => {
+                    const hasRights = ownership[c.id] !== undefined;
+                    return `
+                        <div class="comment-card" data-id="${c.id}">
+                        <div class="comment-author">${c.name}</div>
+                        <p class="comment-text">${c.message}</p>
+                        ${hasRights ? `
+                            <div class="btn-group">
+                            <button class="edit-btn" onclick="startEditing('${c.id}', this)">Edit</button>
+                            <button class="delete-btn" onclick="deleteComment('${c.id}')">Delete</button>
+                            </div>
+                        ` : ''}
+                        </div>
+                    `;
+                    }).join('');
+                } catch (err) {
+                    commentsDisplay.innerHTML = '<p>Could not load comments.</p>';
+                }
+                }
+
+                window.startEditing = (id, btn) => {
+                const card = btn.closest('.comment-card');
+                const name = card.querySelector('.comment-author').innerText;
+                const text = card.querySelector('.comment-text').innerText;
+                const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
+
+                document.getElementById('commentId').value = id;
+                document.getElementById('deleteToken').value = ownership[id];
+                document.getElementById('isEditing').value = "true";
+                
+                document.getElementById('nameInput').value = name;
+                document.getElementById('commentInput').value = text;
+                
+                submitBtn.innerText = "Save Edit";
+                cancelBtn.style.display = "inline-block";
+                };
+
+                window.cancelEditing = () => {
+                form.reset();
+                document.getElementById('isEditing').value = "false";
+                document.getElementById('commentId').value = "";
+                document.getElementById('deleteToken').value = "";
+                submitBtn.innerText = "Post Comment";
+                cancelBtn.style.display = "none";
+                };
+
+                window.deleteComment = async (id) => {
+                if (!confirm('Delete comment?')) return;
+                const ownership = JSON.parse(localStorage.getItem('blob_comments') || '{}');
+                const token = ownership[id];
+
+                try {
+                    const res = await fetch('/api/delete-comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, token })
+                    });
+
+                    if (res.ok) {
+                    delete ownership[id];
+                    localStorage.setItem('blob_comments', JSON.stringify(ownership));
+                    loadComments();
+                    } else { alert('Failed to delete.'); }
+                } catch (err) { alert('An error occurred.'); }
+                };
+
+                loadComments();
+            </script>
 
         </div>
         <script src="../Scripts/dark-mode.js"></script>

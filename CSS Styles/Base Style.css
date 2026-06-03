@@ -55,6 +55,44 @@
     font-weight: normal;
 }
 
+.comment-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    position: relative;
+}
+
+.comment-author {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.btn-group {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 5px;
+}
+
+.delete-btn {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.edit-btn {
+    background: #e0e0e0;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
 html::-webkit-scrollbar {
 	width: 0;
 	height: 0;
@@ -117,6 +155,17 @@ table{
 th, td {
     outline: 1px solid #b1b1b1;
     padding: 3px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+textarea {
+    height: 100px;
 }
 
 .hover-container {
