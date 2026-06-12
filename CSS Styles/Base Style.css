@@ -55,42 +55,83 @@
     font-weight: normal;
 }
 
-.comment-card {
-    border: 1px solid #ddd;
-    padding: 15px;
+/* Comment Section */
+.comment-section {
+    place-self: center;
+    width: 70%;
+    border-color: inherit;
+}
+
+form {
+    background-color: inherit;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: inherit;
+    font-weight: bold;
+}
+
+input, textarea {
+    border: 2px solid;
+    background-color: inherit;
+    font: inherit;
     margin-bottom: 10px;
-    border-radius: 4px;
+    padding: 3px 8px;
+}
+
+input:focus, textarea:focus {
+  outline: 1px solid;
+  box-shadow: none;
+}
+
+textarea {
+    resize: none;
+    field-sizing: content;
+    color: inherit;
+    font-weight: normal;
+}
+
+::placeholder {
+  color: inherit; 
+  opacity: 1;
+}
+
+.comment-card {
+    display: flex;
+    border: 2px solid;
+    padding: 3px 8px;
+    margin-bottom: 10px;
     position: relative;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.comment-body {
+    min-width: 0;
 }
 
 .comment-author {
     font-weight: bold;
     margin-bottom: 5px;
+    color: inherit;
+}
+
+.btns {
+    background-color: inherit;
+    cursor: pointer;
+    border: 2px solid;
+    color: inherit;
+    padding: 3px 8px;
+    font-weight: normal;
 }
 
 .btn-group {
-    position: absolute;
+    position: relative;
     top: 15px;
     right: 15px;
     display: flex;
     gap: 5px;
-}
-
-.delete-btn {
-    background: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 3px 8px;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.edit-btn {
-    background: #e0e0e0;
-    border: none;
-    padding: 3px 8px;
-    border-radius: 3px;
-    cursor: pointer;
 }
 
 html::-webkit-scrollbar {
@@ -155,17 +196,6 @@ table{
 th, td {
     outline: 1px solid #b1b1b1;
     padding: 3px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 30px;
-}
-
-textarea {
-    height: 100px;
 }
 
 .hover-container {

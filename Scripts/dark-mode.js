@@ -25,7 +25,9 @@ function darkModeToggle(change = false) {
       toggle.style.filter = "invert(1)";
       text.style.backgroundColor = "#616161";
       children.forEach(descendant => {
-         descendant.style.color = "#b1b1b1";
+         if (!descendant.classList.contains("dlt-btn")) {
+            descendant.style.color = "#b1b1b1";
+         }
          if (descendant.classList.contains("header")) {
             descendant.style.backgroundColor = "#222222";
          } else if (descendant.classList.contains("sidebar")) {
@@ -41,7 +43,9 @@ function darkModeToggle(change = false) {
       toggle.style.filter = "none";
       text.style.backgroundColor = "#000000";
       children.forEach(descendant => {
-         descendant.style.color = "#000000";
+         if (!descendant.classList.contains("dlt-btn")) {
+            descendant.style.color = "#000000";
+         }
          if (descendant.classList.contains("header")) {
             descendant.style.backgroundColor = "#008cff";
          } else if (descendant.classList.contains("sidebar")) {
