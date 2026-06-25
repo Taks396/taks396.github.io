@@ -9,6 +9,7 @@ const escapeHTML = str => (str || '').replace(/[&<>"']/g, m => htmlEscapes[m]);
 
 let editState = { isEditing: false, id: null, token: null };
 
+// Centralized and try-catch isolated LocalStorage access wrapper
 const getOwnership = () => {
   try { return JSON.parse(localStorage.getItem('blob_comments') || '{}'); } catch { return {}; }
 };
@@ -38,18 +39,21 @@ function createCommentHTML(id, name, message, hasRights, status = 'none') {
     </div>`;
 }
 
+// 1. Submit or Edit Comment Handler (Points to unified endpoint)
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = nameIn.value.trim() || 'Anonymous', message = msgIn.value, { isEditing } = editState;
   const id = isEditing ? editState.id : crypto.randomUUID();
   const token = isEditing ? editState.token : crypto.randomUUID();
 
-  if (!isEditing && commentsDisplay.children[0]?.tagName === 'P') commentsDisplay.textContent = '';
-  isEditing ? replaceNode(id, createCommentHTML(id, name, message, false, 'saving')) 
-            : commentsDisplay.insertAdjacentHTML('afterbegin', createCommentHTML(id, name, message, false, 'saving'));
+  if (!isEditing && commentsDisplay.children?.tagName === 'P') commentsDisplay.textContent = '';
+  
+  // Renders the original, preferred (Saving...) look instantly
+  const savingHTML = createCommentHTML(id, name, message, false, 'saving');
+  isEditing ? replaceNode(id, savingHTML) : commentsDisplay.insertAdjacentHTML('afterbegin', savingHTML);
 
   try {
-    const res = await fetch('/api/post-comment', {
+    const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, token, name, message })
@@ -68,9 +72,10 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+// 2. Fetch and Display Comments
 async function loadComments() {
   try {
-    const res = await fetch('/api/get-comments');
+    const res = await fetch('/api/comments');
     const comments = await res.json(), ownership = getOwnership();
     
     commentsDisplay.innerHTML = comments?.length 
@@ -81,6 +86,7 @@ async function loadComments() {
   }
 }
 
+// 3. Action Hooks
 window.startEditing = (id, btn) => {
   const card = btn.closest('.comment-card'), token = getOwnership()[id];
   if (!token) return alert("You do not have permission to edit this comment.");
@@ -108,10 +114,10 @@ window.deleteComment = async (id, btn) => {
   setTimeout(() => card.remove(), 200);
 
   try {
-    const res = await fetch('/api/delete-comment', {
+    const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, token })
+      body: JSON.stringify({ id, token, action: 'delete' }) // Uses action parameter flag
     });
     if (!res.ok) throw 0;
     
