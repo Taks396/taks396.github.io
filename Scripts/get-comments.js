@@ -1,35 +1,26 @@
 import { getStore } from "@netlify/blobs";
 
 export default async function handler(request, context) {
-  const siteID = process.env.SITE_ID;
-  const token = process.env.NETLIFY_AUTH_TOKEN;
+  const { SITE_ID: siteID, NETLIFY_AUTH_TOKEN: token } = process.env;
 
   try {
-    // FIX: Manually supply siteID and token so branch deploys can access the store
-    const commentsStore = getStore({
-      name: "site-comments",
-      siteID: siteID,
-      token: token
-    });
+    const commentsStore = getStore({ name: "site-comments", siteID, token });
     
-    // 1. List all active keys inside your blob store
-    const list = await commentsStore.list();
-    const commentPromises = list.blobs.map(b => commentsStore.get(b.key, { type: "json" }));
+    const { blobs } = await commentsStore.list();
+    const rawComments = await Promise.all(
+      blobs.map(b => commentsStore.get(b.key, { type: "json" }).catch(() => null))
+    );
     
-    // 2. Resolve all entry values simultaneously
-    const rawComments = await Promise.all(commentPromises);
-
-    // 3. Sort chronologically (Newest first)
     const comments = rawComments
-      .filter(Boolean)
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .map(({ token, ...publicData }) => publicData); // Hide delete token from public
+      .filter(c => c && c.date)
+      .map(({ token: _, ...publicData }) => publicData)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return new Response(JSON.stringify(comments), {
       status: 200,
       headers: { 
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache" 
+        "Cache-Control": "no-cache, no-store, must-revalidate" 
       }
     });
   } catch (error) {

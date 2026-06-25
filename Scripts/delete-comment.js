@@ -5,38 +5,27 @@ export default async function handler(request, context) {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
-  const siteID = process.env.SITE_ID;
-  const token = process.env.NETLIFY_AUTH_TOKEN;
+  const { SITE_ID: siteID, NETLIFY_AUTH_TOKEN: token } = process.env;
+  const headers = { "Content-Type": "application/json" };
 
   try {
     const { id, token: userToken } = await request.json();
-    
-    // FIX: Pass site credentials into store configuration
-    const commentsStore = getStore({
-      name: "site-comments",
-      siteID: siteID,
-      token: token
-    });
+    const commentsStore = getStore({ name: "site-comments", siteID, token });
 
     const existing = await commentsStore.get(id, { type: "json" });
+    
     if (!existing) {
-      return new Response(JSON.stringify({ error: "Comment not found" }), { status: 404 });
+      return new Response(JSON.stringify({ error: "Comment not found" }), { status: 404, headers });
     }
 
     if (existing.token !== userToken) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403 });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403, headers });
     }
 
     await commentsStore.delete(id);
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
   }
 }

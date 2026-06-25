@@ -1,150 +1,129 @@
-const form = document.getElementById('commentForm');
-const [nameIn, msgIn] = [document.getElementById('nameInput'), document.getElementById('commentInput')];
-const commentsDisplay = document.getElementById('commentsDisplay');
-const submitBtn = document.getElementById('submitBtn');
-const cancelBtn = document.getElementById('cancelBtn');
+const form = document.getElementById('commentForm'),
+      [nameIn, msgIn] = [document.getElementById('nameInput'), document.getElementById('commentInput')],
+      commentsDisplay = document.getElementById('commentsDisplay'),
+      submitBtn = document.getElementById('submitBtn'),
+      cancelBtn = document.getElementById('cancelBtn');
 
-const getOwnership = () => JSON.parse(localStorage.getItem('blob_comments') || '{}');
-const saveOwnership = (data) => localStorage.setItem('blob_comments', JSON.stringify(data));
-const escapeHTML = (str) => !str ? '' : str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const htmlEscapes = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escapeHTML = str => (str || '').replace(/[&<>"']/g, m => htmlEscapes[m]);
 
 let editState = { isEditing: false, id: null, token: null };
 
+const getOwnership = () => {
+  try { return JSON.parse(localStorage.getItem('blob_comments') || '{}'); } catch { return {}; }
+};
+
+const replaceNode = (id, html) => {
+  const target = document.getElementById(`comment-node-${id}`);
+  if (!target) return;
+  const temp = document.createElement('template');
+  temp.innerHTML = html;
+  target.replaceWith(temp.content.firstElementChild);
+};
+
 function createCommentHTML(id, name, message, hasRights, status = 'none') {
-const safeName = escapeHTML(name);
-const safeMessage = escapeHTML(message);
-
-let suffix = '';
-if (status === 'saving') suffix = ' (Saving...)';
-if (status === 'deleting') suffix = ' (Deleting...)';
-
-return `
-    <div class="comment-card" ${status === 'saving' ? `id="temp-${id}"` : `data-id="${id}"`}>
-    <div class="comment-body">
-        <div class="comment-author">${safeName}${suffix}</div>
-        <p class="comment-text" style="overflow-wrap: break-word;">${safeMessage}</p>
-    </div>
-    ${hasRights && status === 'none' ? `
+  const suffix = status === 'saving' ? ' (Saving...)' : status === 'deleting' ? ' (Deleting...)' : '';
+  const escapedName = escapeHTML(name);
+  return `
+    <div class="comment-card" id="comment-node-${id}" data-id="${id}" style="transition: opacity 0.2s ease;">
+      <div class="comment-body">
+        <div class="comment-author" data-raw-name="${escapedName}">${escapedName}${suffix}</div>
+        <p class="comment-text" style="overflow-wrap: break-word;">${escapeHTML(message)}</p>
+      </div>
+      ${hasRights && status === 'none' ? `
         <div class="btn-group">
-        <button class="btns edt-btn" onclick="startEditing('${id}', this)">Edit</button>
-        <button class="btns dlt-btn" onclick="deleteComment('${id}', this)">Delete</button>
-        </div>
-    ` : ''}
-    </div>
-`;
+          <button class="btns edt-btn" onclick="startEditing('${id}', this)">Edit</button>
+          <button class="btns dlt-btn" onclick="deleteComment('${id}', this)">Delete</button>
+        </div>` : ''}
+    </div>`;
 }
 
-// 1. Submit or Edit Comment Handler
 form.addEventListener('submit', async (e) => {
-e.preventDefault();
+  e.preventDefault();
+  const name = nameIn.value.trim() || 'Anonymous', message = msgIn.value, { isEditing } = editState;
+  const id = isEditing ? editState.id : crypto.randomUUID();
+  const token = isEditing ? editState.token : crypto.randomUUID();
 
-const name = nameIn.value.trim() || 'Anonymous';
-const message = msgIn.value;
-const { isEditing } = editState;
-let { id, token } = editState;
+  if (!isEditing && commentsDisplay.children[0]?.tagName === 'P') commentsDisplay.textContent = '';
+  isEditing ? replaceNode(id, createCommentHTML(id, name, message, false, 'saving')) 
+            : commentsDisplay.insertAdjacentHTML('afterbegin', createCommentHTML(id, name, message, false, 'saving'));
 
-if (!isEditing) {
-    id = crypto.randomUUID();
-    token = crypto.randomUUID();
-}
-
-const instantHTML = createCommentHTML(id, name, message, false, 'saving');
-        
-if (!isEditing && commentsDisplay.innerHTML.includes('No comments yet')) {
-    commentsDisplay.innerHTML = '';
-}
-
-if (isEditing) {
-    document.querySelector(`[data-id="${id}"]`)?.replaceWith(Object.assign(document.createElement('div'), {innerHTML: instantHTML}).firstElementChild);
-} else {
-    commentsDisplay.insertAdjacentHTML('afterbegin', instantHTML);
-}
-
-try {
+  try {
     const res = await fetch('/api/post-comment', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, token, name, message })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, token, name, message })
     });
-    if (!res.ok) throw new Error();
-} catch {
-    alert('Failed to save comment.');
-    return loadComments(); 
-}
+    if (!res.ok) throw 0;
 
-if (!isEditing) {
     const ownership = getOwnership();
     ownership[id] = token;
-    saveOwnership(ownership);
-}
+    try { localStorage.setItem('blob_comments', JSON.stringify(ownership)); } catch {}
 
-document.getElementById(`temp-${id}`)?.replaceWith(Object.assign(document.createElement('div'), {innerHTML: createCommentHTML(id, name, message, true, 'none')}).firstElementChild);
-cancelEditing(); 
+    replaceNode(id, createCommentHTML(id, name, message, true, 'none'));
+    cancelEditing();
+  } catch {
+    alert('Failed to save comment.');
+    loadComments();
+  }
 });
 
-// 2. Fetch and Display Comments
 async function loadComments() {
-try {
+  try {
     const res = await fetch('/api/get-comments');
-    const comments = await res.json();
-    const ownership = getOwnership();
+    const comments = await res.json(), ownership = getOwnership();
     
-    if (!comments?.length) {
-    commentsDisplay.innerHTML = '<p>No comments yet. Be the first!</p>';
-    return;
-    }
-
-    commentsDisplay.innerHTML = comments.map(c => createCommentHTML(c.id, c.name, c.message, ownership[c.id] !== undefined, 'none')).join('');
-} catch {
+    commentsDisplay.innerHTML = comments?.length 
+      ? comments.map(c => createCommentHTML(c.id, c.name, c.message, ownership[c.id] !== undefined, 'none')).join('')
+      : '<p>No comments yet. Be the first!</p>';
+  } catch {
     commentsDisplay.innerHTML = '<p>Could not load comments.</p>';
-}
+  }
 }
 
-// 3. Action Hooks
 window.startEditing = (id, btn) => {
-const card = btn.closest('.comment-card');
-editState = { isEditing: true, id, token: getOwnership()[id] };
+  const card = btn.closest('.comment-card'), token = getOwnership()[id];
+  if (!token) return alert("You do not have permission to edit this comment.");
 
-nameIn.value = card.querySelector('.comment-author').innerText;
-msgIn.value = card.querySelector('.comment-text').innerText;
-submitBtn.innerText = "Update Feedback";
-cancelBtn.style.display = "inline-block";
+  editState = { isEditing: true, id, token };
+  nameIn.value = card.querySelector('.comment-author').getAttribute('data-raw-name') || card.querySelector('.comment-author').textContent;
+  msgIn.value = card.querySelector('.comment-text').textContent;
+  submitBtn.textContent = "Update Feedback";
+  cancelBtn.style.display = "inline-block";
 };
 
 window.cancelEditing = () => {
-form.reset();
-editState = { isEditing: false, id: null, token: null };
-submitBtn.innerText = "Post Comment";
-cancelBtn.style.display = "none";
+  form.reset();
+  editState = { isEditing: false, id: null, token: null };
+  submitBtn.textContent = "Post Comment";
+  cancelBtn.style.display = "none";
 };
 
 window.deleteComment = async (id, btn) => {
-const card = btn.closest('.comment-card');
-const name = card.querySelector('.comment-author').innerText;
-const message = card.querySelector('.comment-text').innerText;
-const ownership = getOwnership();
+  const card = btn.closest('.comment-card'), ownership = getOwnership(), token = ownership[id];
+  if (!token) return alert("You do not have permission to delete this comment.");
 
-// Optimistic Deletion UI: Instantly switch card to "Deleting..." state and strip buttons
-card.replaceWith(Object.assign(document.createElement('div'), {
-    innerHTML: createCommentHTML(id, name, message, false, 'deleting')
-}).firstElementChild);
+  const oldHTML = card.outerHTML;
+  card.style.opacity = '0';
+  setTimeout(() => card.remove(), 200);
 
-try {
+  try {
     const res = await fetch('/api/delete-comment', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, token: ownership[id] })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, token })
     });
-
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw 0;
     
     delete ownership[id];
-    saveOwnership(ownership);
-    loadComments(); // Re-fetch or re-render clean state from database
-} catch { 
-    alert('Failed to delete.'); 
-    loadComments(); // Rollback to original state if network fails
-}
+    try { localStorage.setItem('blob_comments', JSON.stringify(ownership)); } catch {}
+    if (!commentsDisplay.children.length) commentsDisplay.innerHTML = '<p>No comments yet. Be the first!</p>';
+  } catch { 
+    alert('Failed to delete comment. Restoring original element.'); 
+    commentsDisplay.insertAdjacentHTML('beforeend', oldHTML);
+    const restored = document.getElementById(`comment-node-${id}`);
+    if (restored) { restored.style.opacity = '0'; setTimeout(() => restored.style.opacity = '1', 50); }
+  }
 };
 
 loadComments();
