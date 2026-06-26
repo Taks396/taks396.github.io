@@ -43,7 +43,7 @@ const syncNameCount = setupCounter(nameIn, nameCounter, MAX_NAME);
 const syncMsgCount = setupCounter(msgIn, charCounter, MAX_CHARS);
 
 function createCommentHTML(id, name, message, hasRights, status = 'none') {
-  const suffix = status === 'saving' ? ' (Saving...)' : status === 'deleting' ? ' (Deleting...)' : '';
+  const suffix = status === 'saving' ? ' (Saving...)' : '';
   const escapedName = escapeHTML(name);
   return `
     <div class="comment-card" id="comment-node-${id}" data-id="${id}" style="transition: opacity 0.2s ease;">

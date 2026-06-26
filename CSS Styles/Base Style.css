@@ -145,6 +145,44 @@ textarea {
     padding: 5px 10px;
 }
 
+/* TESTING */
+
+#nameInput {
+    padding-right: 75px; /* Room for the "0 / 100" counter dimensions */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#commentInput {
+    padding-right: 90px;  /* INVISIBLE WALL: Text wraps early down the entire right edge */
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+/* Position counters perfectly in the TOP-right corner of fields */
+.field-counter {
+    position: absolute;
+    right: 12px;
+    top: 5px;           /* Stays pinned to the top right */
+    pointer-events: none; /* Allows users to click "through" the numbers into the field */
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    user-select: none;
+}
+
+
+
+/* TESTING */
+
+
+
+
+
+
+
+
+
 html::-webkit-scrollbar {
 	width: 0;
 	height: 0;

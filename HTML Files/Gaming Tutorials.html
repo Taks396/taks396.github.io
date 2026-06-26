@@ -252,19 +252,25 @@
       <br>
       
       <div class="comment-section">
-        <form id="commentForm">                  
-          <input type="text" id="nameInput" placeholder="Anonymous" />
-          <textarea id="commentInput" placeholder="Leave your feedback..." required></textarea>
+        <form id="commentForm">
+          <div style="position: relative;">
+            <input type="text" id="nameInput" placeholder="Anonymous" maxlength="100"/>
+            <div id="nameCounter" class="field-counter">0 / 100</div>
+          </div>
+
+          <div style="position: relative;">
+            <textarea id="commentInput" placeholder="Leave your feedback..." required maxlength="2000"></textarea>
+            <div id="charCounter" class="field-counter">0 / 2000</div>
+          </div>
           
-          <div>
+          <div class="form-actions">
             <button type="submit" class="btns" id="submitBtn">Post Comment</button>
-            <button type="button" class="btns" id="cancelBtn" style="display:none;" onclick="cancelEditing()">Cancel</button>
+            <button type="button" class="btns" id="cancelBtn" style="display: none;">Cancel</button>
           </div>
         </form>
 
         <h3>Comments</h3>
         <div id="commentsDisplay">Loading comments...</div>
-
         <script src="../Scripts/comment-section.js" defer></script>
       </div>
     </div>
