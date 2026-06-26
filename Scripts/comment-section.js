@@ -3,11 +3,10 @@ const form = document.getElementById('commentForm'),
       commentsDisplay = document.getElementById('commentsDisplay'),
       submitBtn = document.getElementById('submitBtn'),
       cancelBtn = document.getElementById('cancelBtn'),
-      nameCounter = document.getElementById('nameCounter'), // Name counter element
-      charCounter = document.getElementById('charCounter');  // Comment counter element
+      nameCounter = document.getElementById('nameCounter'),
+      charCounter = document.getElementById('charCounter');
 
-const MAX_NAME = 100;   // Maximum character limit for the name
-const MAX_CHARS = 2000; // Maximum character limit for the comment
+const MAX_NAME = 100, MAX_CHARS = 2000;
 const htmlEscapes = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const escapeHTML = str => (str || '').replace(/[&<>"']/g, m => htmlEscapes[m]);
 
@@ -25,25 +24,20 @@ const replaceNode = (id, html) => {
   target.replaceWith(temp.content.firstElementChild);
 };
 
-// --- Cleaned up Real-time Counter Visibility Logic ---
 const setupCounter = (inputEl, counterEl, maxLimit) => {
-  const updateCount = () => {
-    // No more red text color checks or submitBtn disabling needed!
-    counterEl.textContent = `${inputEl.value.length} / ${maxLimit}`;
-  };
-
+  const updateCount = () => { counterEl.textContent = `${inputEl.value.length} / ${maxLimit}`; };
   inputEl.addEventListener('input', updateCount);
   inputEl.addEventListener('focus', () => { counterEl.style.opacity = '1'; });
   inputEl.addEventListener('blur', () => { counterEl.style.opacity = '0'; });
-
   return updateCount; 
 };
 
 const syncNameCount = setupCounter(nameIn, nameCounter, MAX_NAME);
 const syncMsgCount = setupCounter(msgIn, charCounter, MAX_CHARS);
 
+// OPTIMIZED TEMPLATE: Clean classes, no inline onclick triggers
 function createCommentHTML(id, name, message, hasRights, status = 'none') {
-  const suffix = status === 'saving' ? ' (Saving...)' : '';
+  const suffix = status === 'saving' ? ' (Saving...)' : status === 'deleting' ? ' (Deleting...)' : '';
   const escapedName = escapeHTML(name);
   return `
     <div class="comment-card" id="comment-node-${id}" data-id="${id}" style="transition: opacity 0.2s ease;">
@@ -53,11 +47,28 @@ function createCommentHTML(id, name, message, hasRights, status = 'none') {
       </div>
       ${hasRights && status === 'none' ? `
         <div class="btn-group">
-          <button class="btns edt-btn" onclick="startEditing('${id}', this)">Edit</button>
-          <button class="btns dlt-btn" onclick="deleteComment('${id}', this)">Delete</button>
+          <button class="btns edt-btn">Edit</button>
+          <button class="btns dlt-btn">Delete</button>
         </div>` : ''}
     </div>`;
 }
+
+// ========================================================
+// THE EVENT DELEGATION LISTENER (Replaces window.hooks)
+// ========================================================
+commentsDisplay.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return; // Ignore clicks that aren't on buttons
+
+  const card = btn.closest('.comment-card');
+  if (!card) return;
+  
+  const id = card.dataset.id;
+
+  // Route the action based on the button class
+  if (btn.classList.contains('edt-btn')) handleStartEditing(id, card);
+  if (btn.classList.contains('dlt-btn')) handleDeleteComment(id, card);
+});
 
 // 1. Submit or Edit Comment Handler
 form.addEventListener('submit', async (e) => {
@@ -107,16 +118,15 @@ async function loadComments() {
   }
 }
 
-// 3. Action Hooks
-window.startEditing = (id, btn) => {
-  const card = btn.closest('.comment-card'), token = getOwnership()[id];
+// 3. Core Action Controllers (Cleaned up, no longer bound to global window)
+const handleStartEditing = (id, card) => {
+  const token = getOwnership()[id];
   if (!token) return alert("You do not have permission to edit this comment.");
 
   editState = { isEditing: true, id, token };
   nameIn.value = card.querySelector('.comment-author').getAttribute('data-raw-name') || card.querySelector('.comment-author').textContent;
   msgIn.value = card.querySelector('.comment-text').textContent;
   
-  // Explicitly recalculate counter string numbers when inserting existing edit data
   syncNameCount();
   syncMsgCount();
   
@@ -124,20 +134,18 @@ window.startEditing = (id, btn) => {
   cancelBtn.style.display = "inline-block";
 };
 
-window.cancelEditing = () => {
+const cancelEditing = () => {
   form.reset();
   editState = { isEditing: false, id: null, token: null };
-  
-  // Re-sync counters down to zero cleanly
   syncNameCount();
   syncMsgCount();
-  
   submitBtn.textContent = "Post Comment";
   cancelBtn.style.display = "none";
 };
+cancelBtn.addEventListener('click', cancelEditing);
 
-window.deleteComment = async (id, btn) => {
-  const card = btn.closest('.comment-card'), ownership = getOwnership(), token = ownership[id];
+const handleDeleteComment = async (id, card) => {
+  const ownership = getOwnership(), token = ownership[id];
   if (!token) return alert("You do not have permission to delete this comment.");
 
   const oldHTML = card.outerHTML;
