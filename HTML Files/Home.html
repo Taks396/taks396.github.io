@@ -113,8 +113,10 @@
 
       <div class="comment-section">
         <form id="commentForm">                  
-          <input type="text" id="nameInput" placeholder="Anonymous" />
-          <textarea id="commentInput" placeholder="Leave your feedback..." required></textarea>
+          <input type="text" id="nameInput" placeholder="Anonymous" maxlength="100"/>
+          <div id="nameCounter" style="font-size: 0.85em; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">0 / 100</div>
+          <textarea id="commentInput" placeholder="Leave your feedback..." required maxlength="2000"></textarea>
+          <div id="charCounter" style="font-size: 0.85em; margin-top: 4px; opacity: 0; transition: opacity 0.2s ease;">0 / 2000</div>
           
           <div>
             <button type="submit" class="btns" id="submitBtn">Post Comment</button>

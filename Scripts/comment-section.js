@@ -2,14 +2,17 @@ const form = document.getElementById('commentForm'),
       [nameIn, msgIn] = [document.getElementById('nameInput'), document.getElementById('commentInput')],
       commentsDisplay = document.getElementById('commentsDisplay'),
       submitBtn = document.getElementById('submitBtn'),
-      cancelBtn = document.getElementById('cancelBtn');
+      cancelBtn = document.getElementById('cancelBtn'),
+      nameCounter = document.getElementById('nameCounter'), // Name counter element
+      charCounter = document.getElementById('charCounter');  // Comment counter element
 
+const MAX_NAME = 100;   // Maximum character limit for the name
+const MAX_CHARS = 2000; // Maximum character limit for the comment
 const htmlEscapes = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const escapeHTML = str => (str || '').replace(/[&<>"']/g, m => htmlEscapes[m]);
 
 let editState = { isEditing: false, id: null, token: null };
 
-// Centralized and try-catch isolated LocalStorage access wrapper
 const getOwnership = () => {
   try { return JSON.parse(localStorage.getItem('blob_comments') || '{}'); } catch { return {}; }
 };
@@ -21,6 +24,23 @@ const replaceNode = (id, html) => {
   temp.innerHTML = html;
   target.replaceWith(temp.content.firstElementChild);
 };
+
+// --- Cleaned up Real-time Counter Visibility Logic ---
+const setupCounter = (inputEl, counterEl, maxLimit) => {
+  const updateCount = () => {
+    // No more red text color checks or submitBtn disabling needed!
+    counterEl.textContent = `${inputEl.value.length} / ${maxLimit}`;
+  };
+
+  inputEl.addEventListener('input', updateCount);
+  inputEl.addEventListener('focus', () => { counterEl.style.opacity = '1'; });
+  inputEl.addEventListener('blur', () => { counterEl.style.opacity = '0'; });
+
+  return updateCount; 
+};
+
+const syncNameCount = setupCounter(nameIn, nameCounter, MAX_NAME);
+const syncMsgCount = setupCounter(msgIn, charCounter, MAX_CHARS);
 
 function createCommentHTML(id, name, message, hasRights, status = 'none') {
   const suffix = status === 'saving' ? ' (Saving...)' : status === 'deleting' ? ' (Deleting...)' : '';
@@ -39,16 +59,17 @@ function createCommentHTML(id, name, message, hasRights, status = 'none') {
     </div>`;
 }
 
-// 1. Submit or Edit Comment Handler (Points to unified endpoint)
+// 1. Submit or Edit Comment Handler
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = nameIn.value.trim() || 'Anonymous', message = msgIn.value, { isEditing } = editState;
   const id = isEditing ? editState.id : crypto.randomUUID();
   const token = isEditing ? editState.token : crypto.randomUUID();
 
-  if (!isEditing && commentsDisplay.children?.tagName === 'P') commentsDisplay.textContent = '';
+  if (!isEditing && commentsDisplay.firstElementChild?.tagName === 'P') {
+    commentsDisplay.textContent = '';
+  }
   
-  // Renders the original, preferred (Saving...) look instantly
   const savingHTML = createCommentHTML(id, name, message, false, 'saving');
   isEditing ? replaceNode(id, savingHTML) : commentsDisplay.insertAdjacentHTML('afterbegin', savingHTML);
 
@@ -94,6 +115,11 @@ window.startEditing = (id, btn) => {
   editState = { isEditing: true, id, token };
   nameIn.value = card.querySelector('.comment-author').getAttribute('data-raw-name') || card.querySelector('.comment-author').textContent;
   msgIn.value = card.querySelector('.comment-text').textContent;
+  
+  // Explicitly recalculate counter string numbers when inserting existing edit data
+  syncNameCount();
+  syncMsgCount();
+  
   submitBtn.textContent = "Update Feedback";
   cancelBtn.style.display = "inline-block";
 };
@@ -101,6 +127,11 @@ window.startEditing = (id, btn) => {
 window.cancelEditing = () => {
   form.reset();
   editState = { isEditing: false, id: null, token: null };
+  
+  // Re-sync counters down to zero cleanly
+  syncNameCount();
+  syncMsgCount();
+  
   submitBtn.textContent = "Post Comment";
   cancelBtn.style.display = "none";
 };
@@ -117,7 +148,7 @@ window.deleteComment = async (id, btn) => {
     const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, token, action: 'delete' }) // Uses action parameter flag
+      body: JSON.stringify({ id, token, action: 'delete' })
     });
     if (!res.ok) throw 0;
     

@@ -1,67 +1,81 @@
 import { getStore } from "@netlify/blobs";
 
-// RUNTIME OPTIMIZATION: Initialize the store ONCE at the file's top level.
-// This connection stays warm in memory across subsequent HTTP execution context runs.
 const { SITE_ID: siteID, NETLIFY_AUTH_TOKEN: token } = process.env;
 const commentsStore = getStore({ name: "site-comments", siteID, token });
 const headers = { "Content-Type": "application/json" };
+const BLOB_KEY = "all-comments";
 
 export default async function handler(request, context) {
   const method = request.method;
 
   try {
     // ==========================================
-    // 1. GET ROUTE (Fetch and display comments)
+    // 1. GET ROUTE (Fetch all comments) - Only 1 Read!
     // ==========================================
     if (method === "GET") {
-      const { blobs } = await commentsStore.list();
+      const comments = await commentsStore.get(BLOB_KEY, { type: "json" }) || [];
       
-      // Concurrently resolve JSON blobs; safely catch individual corrupted keys
-      const rawComments = await Promise.all(
-        blobs.map(b => commentsStore.get(b.key, { type: "json" }).catch(() => null))
-      );
-      
-      const comments = rawComments
-        .filter(c => c?.date)
-        .map(({ token: _, ...publicData }) => publicData) // Strip private user tokens
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      // Still strip private tokens before serving them to the client
+      const publicComments = comments.map(({ token: _, ...publicData }) => publicData);
 
-      return new Response(JSON.stringify(comments), {
+      return new Response(JSON.stringify(publicComments), {
         status: 200,
         headers: { ...headers, "Cache-Control": "no-cache, no-store, must-revalidate" }
       });
     }
 
     // ==========================================
-    // 2. POST ROUTE (Post, Edit, and Delete)
+    // 2. POST ROUTE (Add, Edit, and Delete) - Only 1 Read + 1 Write!
     // ==========================================
     if (method === "POST") {
       const { id, token: userToken, name, message, action } = await request.json();
+      
+      // Fetch the entire array of existing comments
+      let comments = await commentsStore.get(BLOB_KEY, { type: "json" }) || [];
+      const existingIdx = comments.findIndex(c => c.id === id);
 
-      // OPTIMIZATION: Route internal deletions via an active payload action flag
+      // --- ACTION A: DELETE ---
       if (action === "delete") {
-        const existing = await commentsStore.get(id, { type: "json" });
-        if (!existing) return new Response(JSON.stringify({ error: "Comment not found" }), { status: 404, headers });
-        if (existing.token !== userToken) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403, headers });
+        if (existingIdx === -1) return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers });
+        if (comments[existingIdx].token !== userToken) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403, headers });
         
-        await commentsStore.delete(id);
+        // Remove the item in memory
+        comments.splice(existingIdx, 1);
+        await commentsStore.setJSON(BLOB_KEY, comments);
         return new Response(JSON.stringify({ success: true }), { status: 200, headers });
       }
 
-      // Handle standard Post / Update modifications
-      const existing = await commentsStore.get(id, { type: "json" });
-      if (existing && existing.token !== userToken) {
-        return new Response(JSON.stringify({ error: "Unauthorized modification" }), { status: 403, headers });
+      // --- ACTION B: EDIT ---
+      if (existingIdx !== -1) {
+        if (comments[existingIdx].token !== userToken) {
+          return new Response(JSON.stringify({ error: "Unauthorized modification" }), { status: 403, headers });
+        }
+        
+        // Update the comment in memory, safely tracking payload size and keeping original date
+        comments[existingIdx] = {
+          id,
+          token: userToken,
+          name: (name || 'Anonymous').trim().slice(0, 100),
+          message: (message || '').trim().slice(0, 2000),
+          date: comments[existingIdx].date
+        };
+      } 
+      // --- ACTION C: ADD NEW ---
+      else {
+        comments.unshift({
+          id,
+          token: userToken,
+          name: (name || 'Anonymous').trim().slice(0, 100),
+          message: (message || '').trim().slice(0, 2000),
+          date: new Date().toISOString()
+        });
       }
 
-      await commentsStore.setJSON(id, {
-        id,
-        token: userToken,
-        name,
-        message,
-        date: existing?.date || new Date().toISOString()
-      });
+      // Re-sort to guarantee chronological order before saving
+      comments.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+      // Overwrite the single blob with the updated array
+      await commentsStore.setJSON(BLOB_KEY, comments);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 
