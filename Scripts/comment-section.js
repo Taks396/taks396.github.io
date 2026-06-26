@@ -35,14 +35,17 @@ const setupCounter = (inputEl, counterEl, maxLimit) => {
 const syncNameCount = setupCounter(nameIn, nameCounter, MAX_NAME);
 const syncMsgCount = setupCounter(msgIn, charCounter, MAX_CHARS);
 
-// OPTIMIZED TEMPLATE: Clean classes, no inline onclick triggers
-function createCommentHTML(id, name, message, hasRights, status = 'none') {
+const syncAllCounters = () => { syncNameCount(); syncMsgCount(); };
+
+function createCommentHTML(id, name, message, hasRights, status = 'none', sourcePage = '') {
   const suffix = status === 'saving' ? ' (Saving...)' : status === 'deleting' ? ' (Deleting...)' : '';
-  const escapedName = escapeHTML(name);
+  const sourceContext = sourcePage ? `From "${sourcePage}," ` : '';
+  const escapedAuthorText = escapeHTML(`${sourceContext}${name} said...`);
+  
   return `
     <div class="comment-card" id="comment-node-${id}" data-id="${id}" style="transition: opacity 0.2s ease;">
       <div class="comment-body">
-        <div class="comment-author" data-raw-name="${escapedName}">${escapedName}${suffix}</div>
+        <div class="comment-author" data-raw-name="${escapeHTML(name)}">${escapedAuthorText}${suffix}</div>
         <p class="comment-text" style="overflow-wrap: break-word;">${escapeHTML(message)}</p>
       </div>
       ${hasRights && status === 'none' ? `
@@ -53,19 +56,15 @@ function createCommentHTML(id, name, message, hasRights, status = 'none') {
     </div>`;
 }
 
-// ========================================================
-// THE EVENT DELEGATION LISTENER (Replaces window.hooks)
-// ========================================================
+// Global Interception via Event Delegation
 commentsDisplay.addEventListener('click', (e) => {
   const btn = e.target.closest('button');
-  if (!btn) return; // Ignore clicks that aren't on buttons
-
+  if (!btn) return;
+  
   const card = btn.closest('.comment-card');
   if (!card) return;
-  
-  const id = card.dataset.id;
 
-  // Route the action based on the button class
+  const { id } = card.dataset;
   if (btn.classList.contains('edt-btn')) handleStartEditing(id, card);
   if (btn.classList.contains('dlt-btn')) handleDeleteComment(id, card);
 });
@@ -73,22 +72,24 @@ commentsDisplay.addEventListener('click', (e) => {
 // 1. Submit or Edit Comment Handler
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const name = nameIn.value.trim() || 'Anonymous', message = msgIn.value, { isEditing } = editState;
-  const id = isEditing ? editState.id : crypto.randomUUID();
-  const token = isEditing ? editState.token : crypto.randomUUID();
+  const name = nameIn.value.trim() || 'Anonymous', message = msgIn.value, { isEditing, id: editId, token: editToken } = editState;
+  const id = isEditing ? editId : crypto.randomUUID();
+  const token = isEditing ? editToken : crypto.randomUUID();
 
-  if (!isEditing && commentsDisplay.firstElementChild?.tagName === 'P') {
-    commentsDisplay.textContent = '';
-  }
+  if (!isEditing && commentsDisplay.firstElementChild?.tagName === 'P') commentsDisplay.textContent = '';
+
+  const currentPage = document.title.split('-').pop().trim();
+  const existingCard = document.getElementById(`comment-node-${id}`);
+  const preservedPage = isEditing ? existingCard?.querySelector('.comment-author').textContent.match(/From\s+"([^"]+),"/)?.[1] : currentPage;
   
-  const savingHTML = createCommentHTML(id, name, message, false, 'saving');
-  isEditing ? replaceNode(id, savingHTML) : commentsDisplay.insertAdjacentHTML('afterbegin', savingHTML);
+  isEditing ? replaceNode(id, createCommentHTML(id, name, message, false, 'saving', preservedPage)) 
+            : commentsDisplay.insertAdjacentHTML('afterbegin', createCommentHTML(id, name, message, false, 'saving', preservedPage));
 
   try {
     const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, token, name, message })
+      body: JSON.stringify({ id, token, name, message, sourcePage: preservedPage })
     });
     if (!res.ok) throw 0;
 
@@ -96,7 +97,7 @@ form.addEventListener('submit', async (e) => {
     ownership[id] = token;
     try { localStorage.setItem('blob_comments', JSON.stringify(ownership)); } catch {}
 
-    replaceNode(id, createCommentHTML(id, name, message, true, 'none'));
+    replaceNode(id, createCommentHTML(id, name, message, true, 'none', preservedPage));
     cancelEditing();
   } catch {
     alert('Failed to save comment.');
@@ -111,25 +112,23 @@ async function loadComments() {
     const comments = await res.json(), ownership = getOwnership();
     
     commentsDisplay.innerHTML = comments?.length 
-      ? comments.map(c => createCommentHTML(c.id, c.name, c.message, ownership[c.id] !== undefined, 'none')).join('')
+      ? comments.map(c => createCommentHTML(c.id, c.name, c.message, ownership[c.id] !== undefined, 'none', c.sourcePage)).join('')
       : '<p>No comments yet. Be the first!</p>';
   } catch {
     commentsDisplay.innerHTML = '<p>Could not load comments.</p>';
   }
 }
 
-// 3. Core Action Controllers (Cleaned up, no longer bound to global window)
+// 3. Core Action Controllers
 const handleStartEditing = (id, card) => {
   const token = getOwnership()[id];
   if (!token) return alert("You do not have permission to edit this comment.");
 
   editState = { isEditing: true, id, token };
-  nameIn.value = card.querySelector('.comment-author').getAttribute('data-raw-name') || card.querySelector('.comment-author').textContent;
+  nameIn.value = card.querySelector('.comment-author').getAttribute('data-raw-name');
   msgIn.value = card.querySelector('.comment-text').textContent;
   
-  syncNameCount();
-  syncMsgCount();
-  
+  syncAllCounters();
   submitBtn.textContent = "Update Feedback";
   cancelBtn.style.display = "inline-block";
 };
@@ -137,8 +136,7 @@ const handleStartEditing = (id, card) => {
 const cancelEditing = () => {
   form.reset();
   editState = { isEditing: false, id: null, token: null };
-  syncNameCount();
-  syncMsgCount();
+  syncAllCounters();
   submitBtn.textContent = "Post Comment";
   cancelBtn.style.display = "none";
 };
